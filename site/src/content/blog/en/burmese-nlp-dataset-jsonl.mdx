@@ -1,0 +1,88 @@
+---
+title: Building a Burmese text dataset from scanned PDFs with JSONL
+description: "Turn scanned Myanmar documents into a page-level JSONL corpus for NLP and LLM work: batch OCR, Unicode normalization, filtering, and deduplication."
+lang: en
+published: 2026-10-22
+tags: [Burmese NLP, dataset, JSONL]
+weight: 1
+minutes: 6
+---
+
+Burmese is a low-resource language for machine learning. Much of the written record that would help sits in scanned books and PDFs, invisible to any tokenizer. Getting it out is mostly an OCR problem, and then a data-hygiene problem.
+
+LEXO handles the first part and gives you clean inputs for the second.
+
+## Why page-level JSONL
+
+LEXO's JSONL export writes one JSON object per page:
+
+```json
+{"doc_id": "9c1e…", "source": "1965-novel.pdf", "page": 12, "kind": "scanned", "text": "…"}
+```
+
+Page-level records are a good unit for a corpus:
+
+- **Traceable.** Every line of text points back to a file and a page.
+- **Filterable.** `kind` tells you whether the text came from a real text layer (`digital`) or from OCR (`scanned`), and failed pages are marked `failed` with an `error`.
+- **Deduplicable.** `doc_id` is the SHA-256 of the source file, so the same PDF downloaded twice gets the same ID.
+- **Streamable.** One record per line works with `jq`, pandas, and Hugging Face `datasets` without loading everything at once.
+
+## Step 1: Clean the PDFs
+
+Running heads and page numbers repeat on every page and will dominate your n-gram counts if you leave them in. Crop them before OCR:
+
+```bash
+lexo pdf crop book.pdf --top 7 --bottom 8 -o clean/book.pdf
+```
+
+Split two-up spreads with `lexo pdf split-spread` if needed.
+
+## Step 2: OCR to JSONL
+
+Per document:
+
+```bash
+lexo ocr clean/book.pdf --format jsonl -o jsonl/book.jsonl
+```
+
+Burmese is the default language. LEXO extracts digital pages directly and only OCRs scanned ones; add `--force-ocr` if a hidden text layer is unreliable.
+
+For a whole folder, a short shell loop does it (bash):
+
+```bash
+for f in clean/*.pdf; do
+  lexo ocr "$f" --format jsonl -o "jsonl/$(basename "${f%.pdf}").jsonl"
+done
+```
+
+`lexo ocr-batch` is the resumable alternative, but it writes plain text only.
+
+## Step 3: What normalization you already have
+
+Every record's `text` has been:
+
+- normalized to **Unicode NFC**, so visually identical words compare equal;
+- cleaned of control and invisible format characters;
+- left with **zero-width spaces (U+200B)** intact, since Burmese uses them for word and line breaks.
+
+LEXO does not convert Zawgyi, segment words, or fix OCR errors. Those decisions are yours.
+
+## Step 4: Filter and combine
+
+A starting point with `jq`:
+
+```bash
+cat jsonl/*.jsonl \
+  | jq -c 'select(.kind != "failed" and (.text | length) > 50)' \
+  > corpus.jsonl
+```
+
+Then deduplicate by `doc_id` and `page`, and consider dropping pages with a high share of non-Myanmar characters, which often means a table, an index, or a bad scan.
+
+## Step 5: Look at the data
+
+Sample a few hundred pages and read them against the scans. OCR errors in Burmese tend to cluster in small type, worn print, and unusual stacked consonants. Knowing your error profile is what makes the dataset trustworthy.
+
+## Licensing
+
+Being able to OCR a document doesn't mean you may redistribute its text. Record each source's licence alongside its `doc_id`, and keep copyrighted material out of any public release.

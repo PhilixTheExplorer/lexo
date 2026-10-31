@@ -1,0 +1,25 @@
+---
+// The root has no content of its own. Cloudflare's _redirects answers "/" with a 301 to /en/;
+// this page only covers hosts and dev servers that ignore _redirects.
+const site = Astro.site ?? new URL("https://lexo.philix.dev");
+const en = new URL("/en/", site).href;
+const my = new URL("/my/", site).href;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>LEXO — Burmese OCR</title>
+    <meta name="robots" content="noindex, follow" />
+    <link rel="canonical" href={en} />
+    <link rel="alternate" hreflang="en" href={en} />
+    <link rel="alternate" hreflang="my" href={my} />
+    <link rel="alternate" hreflang="x-default" href={en} />
+    <meta http-equiv="refresh" content="0; url=/en/" />
+  </head>
+  <body>
+    <p><a href="/en/">English</a> · <a href="/my/" lang="my">မြန်မာ</a></p>
+  </body>
+</html>

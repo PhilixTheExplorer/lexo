@@ -1,0 +1,43 @@
+---
+import Icon from "~/components/Icon.astro";
+import { href, useT } from "~/i18n/utils";
+import Base from "~/layouts/Base.astro";
+
+const en = useT("en");
+const my = useT("my");
+---
+
+<Base
+  lang="en"
+  title="Page not found"
+  description="This address doesn't match a page on the LEXO site."
+  section="home"
+  path="404/"
+  alternates={{}}
+  noindex
+>
+  <div class="wrap grid min-h-[60vh] content-center gap-12 py-20 lg:grid-cols-2">
+    <div>
+      <h1 class="display">{en("404.title")}</h1>
+      <p class="lede mt-5">{en("404.body")}</p>
+      <div class="mt-8 flex flex-wrap gap-3">
+        <a class="btn btn-ink" href={href("en")}>LEXO home</a>
+        <a class="btn btn-line" href={href("en", "docs/")}>
+          {en("nav.docs")}
+          <Icon name="arrow" size={18} />
+        </a>
+      </div>
+    </div>
+    <div lang="my" class="lg:pt-10">
+      <h2 class="h2">{my("404.title")}</h2>
+      <p class="lede mt-5">{my("404.body")}</p>
+      <div class="mt-8 flex flex-wrap gap-3">
+        <a class="btn btn-ink" href={href("my")}>ပင်မစာမျက်နှာ</a>
+        <a class="btn btn-line" href={href("my", "docs/")}>
+          {my("nav.docs")}
+          <Icon name="arrow" size={18} />
+        </a>
+      </div>
+    </div>
+  </div>
+</Base>

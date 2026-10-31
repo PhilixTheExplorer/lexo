@@ -1,0 +1,78 @@
+---
+title: "Extract text from a Burmese PDF: text layer or OCR?"
+description: How to tell whether a Myanmar PDF is digital or scanned, and the fastest way to extract Burmese text from each, including mixed documents.
+lang: en
+published: 2026-10-22
+tags: [Myanmar PDF to text, extract Burmese text, PDF]
+translationKey: extract
+weight: 3
+minutes: 5
+---
+
+"Get the text out of this PDF" sounds like one task. It's really two, and picking the right one saves hours.
+
+## Two kinds of PDF
+
+**Digital PDFs** were created by software: exported from Word, LibreOffice, InDesign, or a web page. The text is stored as text. You can select it, search it, and copy it.
+
+**Scanned PDFs** were created by a scanner or a phone camera. Each page is a picture. There is no text inside, only an image of text.
+
+Many real-world files are both: a digital report with scanned signature pages, or a book where a few pages were rescanned.
+
+## How to tell which you have
+
+Try selecting a sentence in a PDF reader. If you can highlight individual words, there's a text layer. If you can only draw a box around the whole page, it's an image.
+
+Or ask LEXO:
+
+```bash
+lexo pdf info document.pdf
+```
+
+It reports the page count and whether the file has a text layer.
+
+## Digital PDFs: extract, don't OCR
+
+If the text is already there, copying it is faster and more accurate than recognising it from pixels: no network, no account, and no recognition errors.
+
+```bash
+lexo extract document.pdf -o document.txt
+```
+
+In the desktop app, choose **Text layer** and click **Run**.
+
+One caveat for Burmese: if the extracted text comes out as Latin letters, the PDF was typed in a legacy font such as Win Innwa. The text layer is real, but it isn't Unicode. Use OCR for those. [Here's why](/en/blog/win-innwa-pdf-to-unicode/).
+
+## Scanned PDFs: OCR
+
+For images of text, you need OCR. LEXO uses Google Docs OCR through your own Google account, with Burmese as the default language:
+
+```bash
+lexo ocr scan.pdf -o scan.txt
+```
+
+This needs a [one-time Google Cloud setup](/en/docs/google-cloud-setup/). Before running it on a book, crop away running heads and split two-page spreads; the [step-by-step guide](/en/blog/scanned-burmese-pdf-to-unicode-text/) covers both.
+
+## Mixed documents: let LEXO route each page
+
+`lexo ocr` checks each page. Pages with a usable text layer are extracted directly; pages without one are rendered and OCR'd. You get exact text where it exists and OCR only where it's needed, in one command:
+
+```bash
+lexo ocr mixed.pdf -o mixed.txt
+```
+
+If a text layer exists but is wrong (some scanners add a poor hidden OCR layer), force OCR for every page:
+
+```bash
+lexo ocr mixed.pdf --force-ocr -o mixed.txt
+```
+
+## Quick decision table
+
+| What you see | What to run |
+|---|---|
+| Text selects word by word, looks right when pasted | `lexo extract` |
+| Text won't select at all | `lexo ocr` |
+| Pastes as English letters but shows Burmese | `lexo ocr --force-ocr` |
+| Pastes as scrambled Burmese | `lexo ocr --force-ocr` (possibly Zawgyi) |
+| Some pages select, some don't | `lexo ocr` |

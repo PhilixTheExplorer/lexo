@@ -1,0 +1,353 @@
+---
+import { Picture } from "astro:assets";
+import type { ImageMetadata } from "astro";
+import type { Lang } from "~/i18n/ui";
+import { localDigits } from "~/i18n/utils";
+
+type StepExtra =
+  | { kind: "proof"; wrong: string; right: string; note: string }
+  | { kind: "output"; file: string; text: string; note: string };
+
+interface Step {
+  title: string;
+  body: string;
+  image: ImageMetadata;
+  alt: string;
+  extra?: StepExtra | undefined;
+}
+
+interface Props {
+  lang: Lang;
+  steps: Step[];
+}
+
+const { lang, steps } = Astro.props;
+const pictureProps = {
+  formats: ["avif"] as "avif"[],
+  fallbackFormat: "webp" as const,
+  widths: [640, 1000, 1400, 2000],
+  loading: "lazy" as const,
+  decoding: "async" as const,
+};
+---
+
+<div class="workflow" data-workflow>
+  <ol class="steps">
+    {
+      steps.map((step, i) => (
+        <li class="step" data-step={i}>
+          <div class="step-text">
+            <p class="num" aria-hidden="true">
+              {localDigits(String(i + 1).padStart(2, "0"), lang)}
+            </p>
+            <h3 class="h3 step-title text-ink">{step.title}</h3>
+            <p class="mt-2 text-ink-2">{step.body}</p>
+            {step.extra?.kind === "proof" && (
+              <figure class="proof-slip">
+                <p class="proof-line" lang="my">
+                  <del>{step.extra.wrong}</del>
+                  <span class="proof-arrow" aria-hidden="true">
+                    →
+                  </span>
+                  <ins>{step.extra.right}</ins>
+                </p>
+                <figcaption>{step.extra.note}</figcaption>
+              </figure>
+            )}
+            {step.extra?.kind === "output" && (
+              <figure class="output-sheet">
+                <p class="output-file" lang="en">
+                  {step.extra.file}
+                </p>
+                <pre lang="my"><code>{step.extra.text}</code></pre>
+                <figcaption>{step.extra.note}</figcaption>
+              </figure>
+            )}
+          </div>
+          <div class="platen step-shot">
+            <Picture
+              src={step.image}
+              alt={step.alt}
+              sizes="94vw"
+              class="shot"
+              {...pictureProps}
+            />
+          </div>
+        </li>
+      ))
+    }
+  </ol>
+  <div class="bed-col" aria-hidden="true">
+    <div class="platen bed">
+      <div class="glass">
+        {
+          steps.map((step, i) => (
+            <div class="page" data-page={i} data-active={i === 0 ? "" : undefined}>
+              <Picture src={step.image} alt="" sizes="56vw" class="shot" {...pictureProps} />
+            </div>
+          ))
+        }
+        <div class="scan-lamp sweep" data-sweep></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .workflow {
+    display: grid;
+    gap: 2.5rem;
+  }
+
+  .workflow > *,
+  .step,
+  .step-text {
+    min-width: 0;
+  }
+
+  .steps {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 3.5rem;
+  }
+
+  .num {
+    font-family: var(--font-mono);
+    font-stretch: 87%;
+    font-size: var(--fs-xs);
+    color: var(--ink-3);
+    margin-bottom: 0.5rem;
+    transition: color 240ms ease;
+  }
+
+  /* Orange marks only the step currently on the glass. */
+  .step[data-current] .num,
+  .workflow:not([data-ready]) .num {
+    color: var(--scan-ink);
+  }
+
+  /* A proofreader's correction: proof red is reserved for exactly this. */
+  .proof-slip {
+    margin-top: 1.25rem;
+    padding: 0.85rem 1rem;
+    background: var(--platen);
+    border-radius: 3px;
+    box-shadow: inset 0 0 0 1px var(--rule);
+  }
+
+  .proof-line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.6rem;
+    font-family: var(--font-my);
+    font-size: var(--fs-lg);
+    line-height: 1.7;
+  }
+
+  .proof-line del {
+    color: var(--ink-2);
+    text-decoration-color: var(--proof);
+    text-decoration-thickness: 2px;
+  }
+
+  .proof-line ins {
+    color: var(--proof);
+    text-decoration: underline;
+    text-decoration-color: var(--proof);
+    text-underline-offset: 0.3em;
+  }
+
+  .proof-arrow {
+    color: var(--ink-3);
+    font-size: var(--fs-base);
+  }
+
+  .proof-slip figcaption,
+  .output-sheet figcaption {
+    margin-top: 0.35rem;
+    font-size: var(--fs-xs);
+    color: var(--ink-3);
+  }
+
+  .output-sheet {
+    margin-top: 1.25rem;
+  }
+
+  .output-file {
+    font-family: var(--font-mono);
+    font-stretch: 87%;
+    font-size: var(--fs-label);
+    letter-spacing: 0.04em;
+    color: var(--ink-3);
+    margin-bottom: 0.4rem;
+  }
+
+  /* The file is shown as written: lines don't wrap (the long doc_id scrolls sideways), and
+     the window is a whole number of lines with the last one fading into the platen. */
+  .output-sheet pre {
+    --line: 1.75em;
+    max-height: calc(var(--line) * 12 + 1.8rem);
+    overflow: auto;
+    padding: 0.9rem 1rem;
+    background: var(--platen);
+    border-radius: 3px;
+    box-shadow: inset 0 0 0 1px var(--rule);
+    font-size: var(--fs-xs);
+    line-height: var(--line);
+    white-space: pre;
+    color: var(--ink);
+    mask-image: linear-gradient(to bottom, var(--ink) calc(100% - 2.6rem), transparent);
+    scrollbar-width: thin;
+  }
+
+  .output-sheet code {
+    font-family: var(--font-mono), var(--font-my);
+    font-size: inherit;
+  }
+
+  .step-text {
+    max-width: 30rem;
+  }
+
+  .step-title {
+    font-size: clamp(1.3rem, 1.1rem + 0.8vw, 1.75rem);
+  }
+
+  .step-shot {
+    margin-top: 1.25rem;
+  }
+
+  .bed-col {
+    display: none;
+  }
+
+  @media (min-width: 64rem) {
+    .workflow {
+      grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.5fr);
+      gap: 4rem;
+    }
+
+    .steps {
+      gap: 0;
+    }
+
+    .step {
+      min-height: 58vh;
+      display: flex;
+      align-items: center;
+    }
+
+    .step :is(h3, p) {
+      transition: color 240ms ease;
+    }
+
+    /* Dim by colour, not opacity, so inactive steps still meet contrast. */
+    .workflow[data-ready] .step:not([data-current]) :is(h3, .step-text > p) {
+      color: var(--ink-3);
+    }
+
+    .step-shot {
+      display: none;
+    }
+
+    .bed-col {
+      display: block;
+    }
+
+    .bed {
+      position: sticky;
+      top: 7.5rem;
+    }
+
+    .glass {
+      position: relative;
+      display: grid;
+      overflow: hidden;
+      border-radius: 3px;
+    }
+
+    .page {
+      grid-area: 1 / 1;
+      opacity: 0;
+      transition: opacity 360ms ease;
+    }
+
+    .page[data-active] {
+      opacity: 1;
+    }
+
+    .sweep {
+      top: 0;
+      opacity: 0;
+    }
+
+    .sweep.run {
+      animation: pass 620ms var(--ease-in-out);
+    }
+  }
+
+  @keyframes pass {
+    0% {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    85% {
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(var(--glass-h, 400px));
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sweep.run {
+      animation: none;
+    }
+  }
+</style>
+
+<script>
+  for (const root of document.querySelectorAll<HTMLElement>("[data-workflow]")) {
+    const steps = [...root.querySelectorAll<HTMLElement>("[data-step]")];
+    const pages = [...root.querySelectorAll<HTMLElement>("[data-page]")];
+    const sweep = root.querySelector<HTMLElement>("[data-sweep]");
+    const glass = sweep?.parentElement;
+    let current = -1;
+
+    const activate = (index: number) => {
+      if (index === current) return;
+      current = index;
+      steps.forEach((s, i) => {
+        if (i === index) s.dataset.current = "";
+        else delete s.dataset.current;
+      });
+      pages.forEach((p, i) => {
+        if (i === index) p.dataset.active = "";
+        else delete p.dataset.active;
+      });
+      if (sweep && glass) {
+        // Each new page on the glass gets one pass of the lamp, never a loop.
+        glass.style.setProperty("--glass-h", `${glass.offsetHeight}px`);
+        sweep.classList.remove("run");
+        void sweep.offsetWidth;
+        sweep.classList.add("run");
+      }
+    };
+
+    root.dataset.ready = "";
+    activate(0);
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) activate(steps.indexOf(entry.target as HTMLElement));
+        }
+      },
+      { rootMargin: "-45% 0px -45% 0px" },
+    );
+    for (const step of steps) observer.observe(step);
+  }
+</script>

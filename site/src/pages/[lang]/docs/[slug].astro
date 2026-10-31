@@ -1,0 +1,274 @@
+---
+import { render } from "astro:content";
+import Breadcrumbs from "~/components/Breadcrumbs.astro";
+import DocsNav from "~/components/DocsNav.astro";
+import Icon from "~/components/Icon.astro";
+import { LINKS } from "~/data/site";
+import { type Lang, LOCALES } from "~/i18n/ui";
+import { formatDate, href, useT } from "~/i18n/utils";
+import Base from "~/layouts/Base.astro";
+import { type Doc, docSlug, docsBySlug, docsFor } from "~/lib/docs";
+import { article, breadcrumbList } from "~/lib/schema";
+
+export async function getStaticPaths() {
+  const bySlug = await docsBySlug();
+  const paths = [];
+  for (const lang of LOCALES) {
+    for (const doc of await docsFor(lang)) {
+      const slug = docSlug(doc);
+      paths.push({ params: { lang, slug }, props: { doc, translations: bySlug.get(slug) ?? {} } });
+    }
+  }
+  return paths;
+}
+
+interface Props {
+  doc: Doc;
+  translations: Partial<Record<Lang, Doc>>;
+}
+
+const { doc, translations } = Astro.props;
+const lang = doc.data.lang;
+const slug = docSlug(doc);
+const t = useT(lang);
+const { Content, headings } = await render(doc);
+const docs = await docsFor(lang);
+const index = docs.findIndex((d) => docSlug(d) === slug);
+const prev = docs[index - 1];
+const next = docs[index + 1];
+const toc = headings.filter((h) => h.depth === 2);
+
+const site = Astro.site ?? new URL("https://lexo.philix.dev");
+const url = new URL(href(lang, `docs/${slug}/`), site).href;
+const alternates = Object.fromEntries(
+  LOCALES.filter((l) => translations[l]).map((l) => [l, `docs/${slug}/`]),
+);
+const crumbs = [
+  { label: t("breadcrumb.home"), href: href(lang) },
+  { label: t("nav.docs"), href: href(lang, "docs/") },
+  { label: doc.data.navTitle ?? doc.data.title },
+];
+const ogImage = `/og/${lang}/docs-${slug}.png`;
+const sourcePath = `site/src/content/docs/${doc.id}${doc.filePath?.endsWith(".md") ? ".md" : ".mdx"}`;
+---
+
+<Base
+  lang={lang}
+  title={doc.data.title}
+  description={doc.data.description}
+  section="docs"
+  path={`docs/${slug}/`}
+  pageLabel={doc.data.navTitle ?? doc.data.title}
+  alternates={alternates}
+  ogImage={ogImage}
+  ogType="article"
+  jsonLd={[
+    article({
+      lang,
+      url,
+      title: doc.data.title,
+      description: doc.data.description,
+      image: new URL(ogImage, site).href,
+      published: doc.data.updated,
+      modified: doc.data.updated,
+      type: "TechArticle",
+    }),
+    breadcrumbList(
+      crumbs.map((c) => ({ name: c.label, url: c.href ? new URL(c.href, site).href : url })),
+    ),
+  ]}
+>
+  <div class="wrap docs-shell">
+    <aside class="docs-side">
+      <details class="docs-disclosure">
+        <summary class="btn btn-line w-full justify-between">
+          {t("docs.nav")}
+          <Icon name="menu" size={18} />
+        </summary>
+        <div class="mt-4"><DocsNav lang={lang} docs={docs} current={slug} label={t("docs.nav")} /></div>
+      </details>
+      <div class="docs-side-sticky">
+        <DocsNav lang={lang} docs={docs} current={slug} label={t("docs.nav")} />
+      </div>
+    </aside>
+
+    <article class="docs-main">
+      <Breadcrumbs items={crumbs} label={t("breadcrumb.home")} />
+      <h1 class="h2 mt-5">{doc.data.title}</h1>
+      <p class="lede mt-4">{doc.data.description}</p>
+      <div class="prose mt-10" lang={lang}>
+        <Content />
+      </div>
+
+      <footer class="docs-foot">
+        <nav class="pager" aria-label={`${t("docs.prev")} / ${t("docs.next")}`}>
+          {
+            prev ? (
+              <a class="pager-link" href={href(lang, `docs/${docSlug(prev)}/`)} rel="prev">
+                <span class="folio">{t("docs.prev")}</span>
+                <span>{prev.data.navTitle ?? prev.data.title}</span>
+              </a>
+            ) : (
+              <span />
+            )
+          }
+          {
+            next && (
+              <a class="pager-link next" href={href(lang, `docs/${docSlug(next)}/`)} rel="next">
+                <span class="folio">{t("docs.next")}</span>
+                <span>{next.data.navTitle ?? next.data.title}</span>
+              </a>
+            )
+          }
+        </nav>
+        <p class="mt-8 flex flex-wrap gap-x-4 gap-y-1 text-sm text-ink-3">
+          <span>{t("blog.updated")}: <time datetime={doc.data.updated.toISOString()}>{formatDate(doc.data.updated, lang)}</time></span>
+          <a class="link text-ink-3" href={`${LINKS.repo}/blob/main/${sourcePath}`}>{t("docs.edit")}</a>
+        </p>
+      </footer>
+    </article>
+
+    {
+      toc.length > 1 && (
+        <aside class="docs-toc" aria-label={t("docs.onThisPage")}>
+          <div class="docs-toc-sticky">
+            <p class="folio mb-3">{t("docs.onThisPage")}</p>
+            <ul>
+              {toc.map((h) => (
+                <li>
+                  <a href={`#${h.slug}`}>{h.text}</a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </aside>
+      )
+    }
+  </div>
+</Base>
+
+<style>
+  .docs-shell {
+    display: grid;
+    gap: 2rem;
+    padding-block: 2rem 5rem;
+  }
+
+  .docs-side-sticky {
+    display: none;
+  }
+
+  .docs-disclosure summary {
+    list-style: none;
+    cursor: pointer;
+  }
+
+  .docs-disclosure summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .docs-main {
+    min-width: 0;
+  }
+
+  .docs-toc {
+    display: none;
+  }
+
+  .docs-toc ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 0.45rem;
+  }
+
+  .docs-toc a {
+    font-size: var(--fs-caption);
+    line-height: 1.4;
+    color: var(--ink-3);
+    text-decoration: none;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .docs-toc a:hover {
+      color: var(--ink);
+    }
+  }
+
+  .docs-foot {
+    margin-top: 4rem;
+    padding-top: 1.5rem;
+    border-top: 1.5px solid var(--ink);
+    max-width: 44rem;
+  }
+
+  .pager {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .pager-link {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: border-color 160ms ease;
+  }
+
+  .pager-link.next {
+    text-align: right;
+    grid-column: 2;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .pager-link:hover {
+      border-color: var(--ink);
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .docs-shell {
+      grid-template-columns: 15rem minmax(0, 1fr);
+      gap: 3.5rem;
+      padding-top: 3rem;
+    }
+
+    .docs-disclosure {
+      display: none;
+    }
+
+    .docs-side-sticky {
+      display: block;
+      position: sticky;
+      top: 7.5rem;
+      max-height: calc(100dvh - 9rem);
+      overflow-y: auto;
+      padding-bottom: 2rem;
+    }
+  }
+
+  @media (min-width: 80rem) {
+    .docs-shell {
+      grid-template-columns: 15rem minmax(0, 1fr) 13rem;
+    }
+
+    .docs-toc {
+      display: block;
+    }
+
+    .docs-toc-sticky {
+      position: sticky;
+      top: 7.5rem;
+    }
+  }
+</style>
+
+<script>
+  import "~/scripts/prose";
+</script>

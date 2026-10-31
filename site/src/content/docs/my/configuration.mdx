@@ -1,0 +1,58 @@
+---
+title: ဆက်တင်နှင့် Environment Variable များ
+navTitle: ဆက်တင်များ
+description: OCR ဘာသာစကား၊ Render Resolution၊ Concurrency၊ Batch Size၊ Logging နှင့် credentials.json တည်နေရာအတွက် LEXO ၏ LEXO_ Environment Variable များနှင့် LEXO ဖိုင်များ သိမ်းဆည်းတဲ့နေရာ။
+lang: my
+group: reference
+order: 3
+updated: 2026-10-22
+---
+
+LEXO ကို မူလဆက်တင်တွေနဲ့ တိုက်ရိုက် သုံးနိုင်ပါတယ်။ တန်ဖိုးတစ်ခုခု ပြောင်းချင်ရင် environment variable သတ်မှတ်ပါ။ LEXO ကို စတင်လုပ်ဆောင်တဲ့ Folder ထဲမှာ `.env` ဖိုင်တစ်ခု ဖန်တီးပြီး အဲဒီအမည်တွေနဲ့ တန်ဖိုးတွေကို ထည့်ပေးလို့လည်း ရပါတယ်။
+
+## ဆက်တင်များ
+
+| ဆက်တင်အမည် | Default value | လုပ်ဆောင်ချက် |
+|---|---|---|
+| `LEXO_OCR_LANGUAGE` | `my` | `--lang` မပေးတဲ့အခါ သုံးမည့် OCR ဘာသာစကား သတ်မှတ်ချက် |
+| `LEXO_RENDER_DPI` | `300` | OCR မလုပ်မီ စာမျက်နှာကို ပုံအဖြစ် ပြောင်းတဲ့အခါ သုံးမယ့် resolution (DPI) |
+| `LEXO_CONCURRENCY` | `4` | တစ်ပြိုင်နက် OCR လုပ်မည့် စာမျက်နှာ အရေအတွက် |
+| `LEXO_OCR_BATCH_SIZE` | `8` | Memory အလွန်အကျွံ မသုံးမိစေဖို့ တစ်သုတ်စီမှာ ပုံအဖြစ် ပြောင်းပြီး OCR လုပ်မယ့် စာမျက်နှာအရေအတွက် |
+| `LEXO_LOG_LEVEL` | `INFO` | Log အသေးစိတ်အဆင့် |
+| `LEXO_GOOGLE_CREDENTIALS` | | `credentials.json` လမ်းကြောင်း၊ Config folder ထက် အရင် စစ်ပါတယ် |
+
+macOS သို့မဟုတ် Linux တွင် Command တစ်ခုအတွက် ဥပမာ -
+
+```bash
+LEXO_CONCURRENCY=2 lexo ocr scan.pdf -o scan.txt
+```
+
+Windows PowerShell တွင် -
+
+```powershell
+$env:LEXO_CONCURRENCY = "2"
+lexo ocr scan.pdf -o scan.txt
+```
+
+`.env` ဖိုင် -
+
+```bash
+LEXO_OCR_LANGUAGE=my
+LEXO_CONCURRENCY=2
+```
+
+## LEXO က ဖိုင်များကို ဘယ်မှာ သိမ်းသလဲ
+
+မိမိစက်ရှိ Folder အတိအကျကို `lexo info` ဖြင့် ကြည့်ပါ -
+
+```text
+lexo 0.4.1
+data dir:   …
+config dir: …
+```
+
+- **Config folder** - `credentials.json` ကို ပုံမှန်ထားရတဲ့ နေရာဖြစ်ပါတယ်။
+- **Data folder** - ပြင်ဆင်ဖို့ ဖန်တီးထားတဲ့ မိတ္တူတွေနဲ့ ယာယီဖိုင်တွေကို သိမ်းထားပါတယ်။ အရင်အသုံးပြုခဲ့စဉ်က ကျန်တဲ့ ယာယီဖိုင်တွေကို အက်ပ်ထဲက **Help → Clean Up Temporary Files…** ဖြင့် ဖယ်ရှားနိုင်ပါတယ်။
+- **OS keychain** - Google အကောင့်ဝင်ခွင့် token ကို သိမ်းထားပါတယ်။ မိမိကိုယ်တိုင် ဖိုင်တစ်ခုအဖြစ် ကိုင်တွယ်စရာ မလိုပါဘူး။ ဖျက်ဖို့ `lexo logout` ကို သုံးပါ။
+
+Folder တည်နေရာများက OS တစ်ခုချင်း၏ စံနှုန်းကို (`platformdirs` မှတစ်ဆင့်) လိုက်နာပါတယ်။

@@ -1,0 +1,56 @@
+---
+title: Privacy and authentication
+navTitle: Privacy and sign-in
+description: Exactly what LEXO does on your computer, what it sends to Google for OCR, the drive.file scope, where the sign-in token lives, and how to revoke access.
+lang: en
+group: help
+order: 2
+updated: 2026-10-22
+---
+
+LEXO is **local-first**: your documents stay on your computer unless you choose Google Docs OCR. It is not an offline OCR engine. OCR happens at Google, through your own account.
+
+## Without Google Docs OCR: nothing leaves your machine
+
+These never touch the network:
+
+- opening and previewing PDFs and images;
+- crop, split, rotate, merge, extract, reorder, and spread splitting;
+- extracting the embedded text of digital PDFs;
+- proofreading, editing, and exporting.
+
+The only other network calls are ones you trigger: `lexo check-update` (or **Check for Updates…**) asks PyPI for the latest version number.
+
+## With Google Docs OCR: what is sent, and where
+
+For each page you OCR, LEXO:
+
+1. prepares a page image on your computer (PDF pages are rendered to resolution-capped JPEGs);
+2. uploads that image to **your own Google Drive**, converting it to a Google Doc with OCR;
+3. exports the recognized plain text;
+4. deletes the temporary file from your Drive.
+
+Page images go to Google and are processed under your Google account's terms. Don't OCR documents you aren't allowed to upload to Google.
+
+Deletion is best effort: if the delete call fails, OCR still succeeds and the temporary file may remain in your Drive, where you can remove it yourself.
+
+## The drive.file scope
+
+LEXO requests a single, least-privilege scope: `https://www.googleapis.com/auth/drive.file`. With it, LEXO can see and change **only files it created itself**. It cannot list, read, or modify anything else in your Drive.
+
+## Your own OAuth client
+
+You create the OAuth client in your own Google Cloud project ([setup](/en/docs/google-cloud-setup/)). No LEXO server sits in the middle: the app talks to Google directly, and there is no LEXO account, telemetry, or analytics in the app.
+
+## Where the token lives
+
+After `lexo login`, LEXO stores the OAuth token in your operating system's keychain (Windows Credential Manager, macOS Keychain, or the Secret Service on Linux) through the `keyring` library. `credentials.json` is read only while signing in.
+
+## Revoking access
+
+- `lexo logout` (or **Account → Sign out**) deletes the token from your keychain.
+- To revoke LEXO's access on Google's side as well, remove it from your Google Account's third-party connections, or delete the OAuth client in your Cloud project.
+
+## This website
+
+This site is static and has no analytics, cookies, or tracking. Your theme and installer choices are remembered in your browser's local storage only.

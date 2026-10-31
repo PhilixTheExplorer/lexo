@@ -1,0 +1,693 @@
+@import "@fontsource-variable/archivo/standard.css";
+@import "@fontsource-variable/martian-mono/standard.css";
+@import "@fontsource/padauk/myanmar-400.css";
+@import "@fontsource/padauk/myanmar-700.css";
+@import "tailwindcss";
+
+/* Local fallbacks sized to Archivo (measured: body 0.98x Arial, display 1.15x Arial Bold),
+   so text barely reflows when the web font swaps in. */
+@font-face {
+  font-family: "Archivo Fallback";
+  src: local("Arial"), local("Helvetica Neue"), local("Liberation Sans");
+  size-adjust: 98%;
+}
+
+@font-face {
+  font-family: "Padauk Fallback";
+  src: local("Myanmar Text"), local("Myanmar Sangam MN"), local("Noto Sans Myanmar");
+}
+
+/* Martian Mono at 87% width advances ~0.648em; Consolas is 0.55em, Menlo and DejaVu 0.602em.
+   Inline code sits in running text, so a mismatched fallback rewraps whole paragraphs. */
+@font-face {
+  font-family: "Martian Fallback A";
+  src: local("Consolas");
+  size-adjust: 117.8%;
+}
+
+@font-face {
+  font-family: "Martian Fallback B";
+  src: local("Menlo"), local("DejaVu Sans Mono"), local("Courier New");
+  size-adjust: 107.6%;
+}
+
+@font-face {
+  font-family: "Archivo Display Fallback";
+  src: local("Arial Bold"), local("Arial-BoldMT"), local("Liberation Sans Bold");
+  font-weight: 600 900;
+  size-adjust: 115%;
+}
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/*
+  The world: a copy-shop scanner bed. Bright copy paper and toner ink; the logo's orange
+  is the scan lamp and is spent only on scanning, the active state, and the primary path.
+  Proof red is reserved for corrections and errors.
+*/
+:root {
+  --paper: #f6f7f9;
+  --paper-raised: #fdfdfe;
+  --platen: #e6e9ed;
+  --platen-deep: #d7dbe1;
+  --ink: #141519;
+  --ink-2: #40434a;
+  --ink-3: #5c6069;
+  --rule: #d6dae0;
+  --rule-strong: #b3b8c1;
+  --scan: #ef8a1f;
+  --scan-ink: #a24f00;
+  --scan-wash: rgb(239 138 31 / 0.13);
+  --proof: #b8322a;
+  --shadow: 0 1px 2px rgb(20 21 25 / 0.06), 0 12px 32px -12px rgb(20 21 25 / 0.22);
+  /* Small-text scale: every size below the reading face comes from these steps. */
+  --fs-micro: 0.68rem;
+  --fs-label: 0.72rem;
+  --fs-xs: 0.8rem;
+  --fs-caption: 0.86rem;
+  --fs-ui: 0.92rem;
+  --fs-sm: 0.95rem;
+  --fs-base: 1.0625rem;
+  --fs-md: 1.2rem;
+  --fs-lg: 1.35rem;
+  --fs-xl: 1.6rem;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  --paper: #121315;
+  --paper-raised: #191a1d;
+  --platen: #1e2023;
+  --platen-deep: #27292d;
+  --ink: #eeeff2;
+  --ink-2: #c3c5cb;
+  --ink-3: #9b9ea6;
+  --rule: #2a2c31;
+  --rule-strong: #3c3f45;
+  --scan: #f0902a;
+  --scan-ink: #ffab57;
+  --scan-wash: rgb(240 144 42 / 0.16);
+  --proof: #ff7d6e;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 16px 40px -16px rgb(0 0 0 / 0.7);
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-paper-raised: var(--paper-raised);
+  --color-platen: var(--platen);
+  --color-platen-deep: var(--platen-deep);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-rule: var(--rule);
+  --color-rule-strong: var(--rule-strong);
+  --color-scan: var(--scan);
+  --color-scan-ink: var(--scan-ink);
+  --color-scan-wash: var(--scan-wash);
+  --color-proof: var(--proof);
+  --font-sans:
+    "Archivo Variable", "Archivo Fallback", "Padauk", "Padauk Fallback", ui-sans-serif, system-ui,
+    sans-serif;
+  --font-display:
+    "Archivo Variable", "Archivo Display Fallback", "Padauk", "Padauk Fallback", sans-serif;
+  --font-mono:
+    "Martian Mono Variable", "Martian Fallback A", "Martian Fallback B", ui-monospace, monospace;
+  --font-my: "Archivo Variable", "Archivo Fallback", "Padauk", "Padauk Fallback", sans-serif;
+  --shadow-sheet: var(--shadow);
+}
+
+@layer base {
+  html {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: 100%;
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+    scroll-padding-top: 5rem;
+    scrollbar-color: var(--rule-strong) var(--paper);
+  }
+
+  html:lang(my) {
+    font-family: var(--font-my);
+  }
+
+  body {
+    min-height: 100dvh;
+    font-size: var(--fs-base);
+    line-height: 1.6;
+    font-stretch: 100%;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Leave Myanmar line breaking to the browser's dictionary segmenter; keep-all or
+     overflow-wrap: anywhere would split words between syllables. */
+  :lang(my) body,
+  body :lang(my) {
+    line-height: 1.95;
+    overflow-wrap: break-word;
+  }
+
+  :lang(en) {
+    overflow-wrap: break-word;
+  }
+
+  ::selection {
+    background: var(--scan-wash);
+    color: var(--ink);
+    text-decoration-color: var(--scan);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--scan-ink);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  a {
+    color: inherit;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.22em;
+  }
+
+  code,
+  kbd,
+  pre,
+  samp {
+    font-family: var(--font-mono);
+    font-stretch: 87%;
+    font-size: 0.86em;
+  }
+
+  input,
+  textarea {
+    caret-color: var(--scan);
+  }
+
+  img,
+  video {
+    max-width: 100%;
+    height: auto;
+  }
+
+  [hidden] {
+    display: none !important;
+  }
+}
+
+@layer components {
+  .wrap {
+    width: 100%;
+    max-width: 82rem;
+    margin-inline: auto;
+    padding-inline: clamp(1rem, 3.2vw, 2.5rem);
+  }
+
+  .display,
+  .h2 {
+    font-family: var(--font-display);
+  }
+
+  :lang(my) :is(.display, .h2),
+  :is(.display, .h2):lang(my) {
+    font-family: var(--font-my);
+  }
+
+  .display {
+    font-size: clamp(2.5rem, 1.35rem + 4.6vw, 5.5rem);
+    font-stretch: 112%;
+    font-weight: 790;
+    line-height: 0.96;
+    letter-spacing: -0.034em;
+    text-wrap: balance;
+  }
+
+  :lang(my) .display,
+  .display:lang(my) {
+    font-size: clamp(2rem, 1.2rem + 3.2vw, 3.9rem);
+    line-height: 1.42;
+    letter-spacing: 0;
+    font-weight: 700;
+  }
+
+  .h2 {
+    font-size: clamp(1.85rem, 1.25rem + 2.3vw, 3.1rem);
+    font-stretch: 108%;
+    font-weight: 740;
+    line-height: 1.02;
+    letter-spacing: -0.026em;
+    text-wrap: balance;
+  }
+
+  :lang(my) .h2,
+  .h2:lang(my) {
+    font-size: clamp(1.55rem, 1.1rem + 1.7vw, 2.35rem);
+    line-height: 1.5;
+    letter-spacing: 0;
+    font-weight: 700;
+  }
+
+  .h3 {
+    font-size: 1.25rem;
+    font-stretch: 104%;
+    font-weight: 660;
+    line-height: 1.25;
+    letter-spacing: -0.012em;
+  }
+
+  :lang(my) .h3,
+  .h3:lang(my) {
+    font-size: var(--fs-md);
+    line-height: 1.7;
+    letter-spacing: 0;
+  }
+
+  .lede {
+    font-size: clamp(1.125rem, 1.02rem + 0.45vw, 1.35rem);
+    line-height: 1.5;
+    color: var(--ink-2);
+    max-width: 38em;
+    text-wrap: pretty;
+  }
+
+  :lang(my) .lede,
+  .lede:lang(my) {
+    font-size: clamp(1.05rem, 0.98rem + 0.3vw, 1.2rem);
+    line-height: 1.95;
+  }
+
+  .folio {
+    font-family: var(--font-mono);
+    font-stretch: 87%;
+    font-size: var(--fs-label);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  .folio :lang(my),
+  .folio:lang(my) {
+    font-family: var(--font-my);
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: var(--fs-xs);
+  }
+
+  /* Martian Mono has no Myanmar digits, so only the Burmese parts of a folio fall back;
+     the Latin address (name, version, licence) keeps the mono voice. */
+  .folio [lang="en"] {
+    font-family: var(--font-mono);
+    font-stretch: 87%;
+    font-size: var(--fs-label);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .mw {
+    white-space: nowrap;
+  }
+
+  .rule-top {
+    border-top: 1px solid var(--rule);
+  }
+
+  .link {
+    color: var(--ink);
+    text-decoration-line: underline;
+    text-decoration-color: var(--rule-strong);
+    transition: text-decoration-color 160ms ease;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .link:hover {
+      text-decoration-color: var(--scan);
+    }
+  }
+
+  /* Buttons: squared like machine keys, pressed like one. */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    min-height: 2.75rem;
+    padding: 0.6rem 1.15rem;
+    border-radius: 3px;
+    font-weight: 620;
+    font-stretch: 104%;
+    line-height: 1.1;
+    text-decoration: none;
+    white-space: nowrap;
+    transition:
+      transform 140ms var(--ease-out),
+      background-color 160ms ease,
+      border-color 160ms ease,
+      color 160ms ease;
+  }
+
+  .btn:active {
+    transform: scale(0.97);
+  }
+
+  .btn-ink {
+    background: var(--ink);
+    color: var(--paper);
+  }
+
+  .btn-line {
+    border: 1px solid var(--rule-strong);
+    color: var(--ink);
+    background: transparent;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .btn-ink:hover {
+      background: color-mix(in oklab, var(--ink) 86%, var(--scan));
+    }
+
+    .btn-line:hover {
+      border-color: var(--ink);
+    }
+  }
+
+  /*
+    The platen: the glass bed a page is laid on. Corner registration marks echo the
+    brackets in the Lexo logo and frame every piece of real product imagery.
+  */
+  .platen {
+    --mark: var(--ink-3);
+    --mark-len: 14px;
+    position: relative;
+    background: var(--platen);
+    padding: clamp(0.75rem, 2vw, 1.5rem);
+    border-radius: 4px;
+    box-shadow: inset 0 0 0 1px var(--rule);
+  }
+
+  .platen::before {
+    content: "";
+    position: absolute;
+    inset: 6px;
+    pointer-events: none;
+    background:
+      linear-gradient(var(--mark), var(--mark)) top left / var(--mark-len) 1.5px,
+      linear-gradient(var(--mark), var(--mark)) top left / 1.5px var(--mark-len),
+      linear-gradient(var(--mark), var(--mark)) top right / var(--mark-len) 1.5px,
+      linear-gradient(var(--mark), var(--mark)) top right / 1.5px var(--mark-len),
+      linear-gradient(var(--mark), var(--mark)) bottom left / var(--mark-len) 1.5px,
+      linear-gradient(var(--mark), var(--mark)) bottom left / 1.5px var(--mark-len),
+      linear-gradient(var(--mark), var(--mark)) bottom right / var(--mark-len) 1.5px,
+      linear-gradient(var(--mark), var(--mark)) bottom right / 1.5px var(--mark-len);
+    background-repeat: no-repeat;
+    opacity: 0.7;
+  }
+
+  .sheet {
+    background: var(--paper-raised);
+    border-radius: 2px;
+    box-shadow: var(--shadow);
+  }
+
+  .shot {
+    display: block;
+    width: 100%;
+    border-radius: 3px;
+    box-shadow:
+      0 0 0 1px rgb(0 0 0 / 0.28),
+      var(--shadow);
+    background: #11151c;
+  }
+
+  .scan-lamp {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--scan);
+    box-shadow:
+      0 0 0 1px rgb(239 138 31 / 0.35),
+      0 0 22px 5px rgb(239 138 31 / 0.38);
+    pointer-events: none;
+  }
+
+  .kbd-cmd {
+    font-family: var(--font-mono);
+    font-stretch: 87%;
+    font-size: var(--fs-ui);
+    letter-spacing: -0.01em;
+  }
+
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: var(--font-mono);
+    font-stretch: 87%;
+    font-size: var(--fs-label);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 0.2rem 0.45rem;
+    border: 1px solid var(--rule-strong);
+    border-radius: 2px;
+    color: var(--ink-2);
+  }
+
+  .tag:lang(my) {
+    font-family: var(--font-my);
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: var(--fs-xs);
+  }
+}
+
+@layer components {
+  /* Long-form reading: docs, articles, changelog. */
+  .prose {
+    max-width: 44rem;
+    color: var(--ink-2);
+    font-size: var(--fs-base);
+  }
+
+  .prose > * + * {
+    margin-top: 1.1em;
+  }
+
+  .prose :where(h2) {
+    margin-top: 2.6em;
+    margin-bottom: 0.2em;
+    color: var(--ink);
+    font-size: var(--fs-xl);
+    font-stretch: 108%;
+    font-weight: 720;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    scroll-margin-top: 6rem;
+  }
+
+  .prose :where(h3) {
+    margin-top: 2em;
+    color: var(--ink);
+    font-size: var(--fs-md);
+    font-weight: 660;
+    line-height: 1.3;
+    scroll-margin-top: 6rem;
+  }
+
+  .prose:lang(my) :where(h2) {
+    font-size: var(--fs-lg);
+    line-height: 1.6;
+    letter-spacing: 0;
+  }
+
+  .prose:lang(my) :where(h3) {
+    font-size: var(--fs-md);
+    line-height: 1.7;
+  }
+
+  .prose :where(h2 + *, h3 + *) {
+    margin-top: 0.6em;
+  }
+
+  .prose :where(strong) {
+    color: var(--ink);
+    font-weight: 650;
+  }
+
+  .prose :where(a) {
+    color: var(--ink);
+    text-decoration-line: underline;
+    text-decoration-color: var(--scan);
+    text-decoration-thickness: 1.5px;
+  }
+
+  .prose :where(ul, ol) {
+    padding-left: 1.3em;
+  }
+
+  .prose :where(ul) {
+    list-style: square;
+  }
+
+  .prose :where(ol) {
+    list-style: decimal;
+  }
+
+  .prose :where(li + li) {
+    margin-top: 0.4em;
+  }
+
+  .prose :where(li)::marker {
+    color: var(--ink-3);
+  }
+
+  .prose :where(:not(pre) > code) {
+    color: var(--ink);
+    background: var(--platen);
+    padding: 0.12em 0.36em;
+    border-radius: 2px;
+    font-size: 0.82em;
+    overflow-wrap: anywhere;
+  }
+
+  .prose :where(pre) {
+    background: var(--platen);
+    color: var(--ink);
+    padding: 1rem 1.15rem;
+    border-radius: 3px;
+    overflow-x: auto;
+    line-height: 1.7;
+    font-size: var(--fs-caption);
+    box-shadow: inset 0 0 0 1px var(--rule);
+  }
+
+  .prose :where(pre code) {
+    font-size: inherit;
+  }
+
+  .prose :where(blockquote) {
+    border-left: 1px solid var(--scan);
+    padding-left: 1rem;
+    color: var(--ink-2);
+  }
+
+  .prose :where(table) {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--fs-sm);
+    display: block;
+    overflow-x: auto;
+  }
+
+  .prose :where(th, td) {
+    text-align: left;
+    vertical-align: top;
+    padding: 0.55rem 0.9rem 0.55rem 0;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .prose :where(th) {
+    color: var(--ink);
+    font-weight: 640;
+  }
+
+  .prose :where(hr) {
+    border: 0;
+    border-top: 1px solid var(--rule);
+    margin-block: 2.5em;
+  }
+
+  .prose :where(img, video, figure) {
+    margin-block: 1.8em;
+  }
+
+  .prose :where(figcaption) {
+    margin-top: 0.6rem;
+    font-size: var(--fs-caption);
+    color: var(--ink-3);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@layer components {
+  .code-wrap {
+    position: relative;
+  }
+
+  .code-wrap pre {
+    padding-right: 5.5rem;
+  }
+
+  .code-copy {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    min-height: 2rem;
+    padding: 0 0.6rem;
+    border-radius: 3px;
+    border: 1px solid var(--rule-strong);
+    background: var(--paper-raised);
+    color: var(--ink-2);
+    font-family: var(--font-sans);
+    font-size: var(--fs-xs);
+    font-weight: 560;
+    transition:
+      transform 140ms var(--ease-out),
+      border-color 160ms ease,
+      color 160ms ease;
+  }
+
+  .code-copy:active {
+    transform: scale(0.96);
+  }
+
+  .code-copy[data-state="copied"] {
+    color: var(--scan-ink);
+    border-color: color-mix(in oklab, var(--scan) 70%, transparent);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .code-copy:hover {
+      color: var(--ink);
+      border-color: var(--ink);
+    }
+  }
+}
+
+@layer base {
+  /* Grid items default to min-width: auto, so one long command would widen the whole column. */
+  .grid > * {
+    min-width: 0;
+  }
+}
+
+@media (max-width: 40rem) {
+  .code-wrap pre {
+    padding-right: 3rem;
+  }
+
+  .code-copy {
+    padding: 0;
+    width: 2rem;
+    justify-content: center;
+  }
+
+  .code-copy [data-copy-label] {
+    display: none;
+  }
+}

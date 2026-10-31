@@ -1,0 +1,363 @@
+---
+import Breadcrumbs from "~/components/Breadcrumbs.astro";
+import Command from "~/components/Command.astro";
+import Icon from "~/components/Icon.astro";
+import type { Lang } from "~/i18n/ui";
+import { href, staticLangPaths, useT } from "~/i18n/utils";
+import Base from "~/layouts/Base.astro";
+import { breadcrumbList } from "~/lib/schema";
+
+export const getStaticPaths = staticLangPaths;
+
+const lang = Astro.params.lang as Lang;
+const t = useT(lang);
+const site = Astro.site ?? new URL("https://lexo.philix.dev");
+
+interface UseCase {
+  id: string;
+  title: string;
+  situation: string;
+  steps: string[];
+  commands?: string[];
+  caveat: string;
+  links: [string, string][];
+}
+
+const content: Record<Lang, { title: string; h1: string; description: string; lede: string; howLabel: string; mindLabel: string; cases: UseCase[] }> = {
+  en: {
+    title: "Use cases: Burmese document digitization with LEXO",
+    h1: "What people digitize with LEXO",
+    description:
+      "How researchers, archivists, publishers, NLP teams, and students use LEXO to turn scanned and legacy-font Burmese documents into searchable Unicode text.",
+    lede: "Five common jobs, the workflow that fits each one, and where LEXO's limits are.",
+    howLabel: "How it goes",
+    mindLabel: "Keep in mind",
+    cases: [
+      {
+        id: "research",
+        title: "Researchers and archives",
+        situation:
+          "You have scanned books, periodicals, or manuscripts in Burmese and need text you can search, quote, and cite. The scans are often two-up spreads with running heads and page numbers.",
+        steps: [
+          "Open the scan and split two-up spreads in the PDF tab.",
+          "Crop away running heads and page numbers for all pages at once.",
+          "Run Google Docs OCR, then proofread each page against its image.",
+          "Export Markdown: one heading per page keeps citations traceable to the original page.",
+        ],
+        caveat:
+          "OCR output needs proofreading before you quote it. LEXO doesn't detect columns, tables, or footnotes, so complex layouts may need manual cleanup.",
+        links: [
+          ["docs/ocr-workflows/", "OCR workflows"],
+          ["blog/digitize-burmese-archive/", "Digitizing a Burmese archive, step by step"],
+        ],
+      },
+      {
+        id: "publishing",
+        title: "Publishers and EPUB production",
+        situation:
+          "You're bringing an out-of-print Burmese title back as an ebook, and the only source is a printed copy or an old PDF.",
+        steps: [
+          "Scan or open the book, split spreads, and crop to the text block.",
+          "OCR it, then correct text in the side-by-side view, where the page image is always next to the line you're fixing.",
+          "Export Markdown and feed it to your EPUB toolchain.",
+        ],
+        caveat:
+          "LEXO produces text, not typeset ebooks: headings, emphasis, and images are yours to restore. Only digitize work you have the rights to.",
+        links: [["docs/export-formats/", "Export formats"]],
+      },
+      {
+        id: "datasets",
+        title: "Burmese NLP and LLM datasets",
+        situation:
+          "You need large amounts of clean Myanmar Unicode text for training or evaluation, and much of what exists is in scanned PDFs.",
+        steps: [
+          "Batch-OCR folders of PDFs from the CLI, which resumes if interrupted.",
+          "Or export JSONL per document: one record per page with the source, page number, and how the text was obtained.",
+          "Filter out failed pages and deduplicate by the document's SHA-256 doc_id.",
+        ],
+        commands: [
+          "lexo ocr-batch ./pdfs --out-dir ./txt",
+          "lexo ocr book.pdf --format jsonl -o book.jsonl",
+        ],
+        caveat:
+          "Text is NFC-normalized with zero-width spaces kept, but OCR errors remain. Sample and review before training on it, and respect the licences of the source documents.",
+        links: [["blog/burmese-nlp-dataset-jsonl/", "Building a Burmese dataset with JSONL"]],
+      },
+      {
+        id: "legacy-fonts",
+        title: "Legacy-font documents",
+        situation:
+          "Office files and PDFs from the Win Innwa era look Burmese on screen, but copy-paste gives you Latin letters. Search, sorting, and screen readers all fail on them.",
+        steps: [
+          "Open the PDF. If text-layer extraction shows ASCII where Burmese should be, it's a legacy font.",
+          "Switch to Google Docs OCR, which reads the rendered page instead of the hidden ASCII.",
+          "Export Myanmar Unicode text.",
+        ],
+        caveat:
+          "OCR re-reads the page, so check the output as you would any OCR. A Win-to-Unicode font converter on the raw text is the alternative when you can't upload the document.",
+        links: [
+          ["blog/win-innwa-pdf-to-unicode/", "Win Innwa PDF to Unicode"],
+          ["docs/ocr-workflows/", "OCR workflows"],
+        ],
+      },
+      {
+        id: "education",
+        title: "Students and teachers",
+        situation:
+          "Course readers, past exam papers, and handouts circulate as photocopies and phone photos. You want text you can search, annotate, or rework.",
+        steps: [
+          "Open phone photos as an image set: one document, one page per photo.",
+          "Rotate and crop each page so only the text is left.",
+          "OCR, fix the few mistakes, and export plain text.",
+        ],
+        caveat:
+          "Clear, flat, well-lit photos give the best results. Handwriting is outside what LEXO is built and tested for.",
+        links: [["docs/desktop-app/", "Desktop app guide"]],
+      },
+    ],
+  },
+  my: {
+    title: "အသုံးပြုပုံများ - LEXO ဖြင့် မြန်မာ စာရွက်စာတမ်းများ ဒစ်ဂျစ်တယ်ပြောင်းခြင်း",
+    h1: "LEXO ကို ဘယ်အလုပ်တွေမှာ သုံးနိုင်သလဲ",
+    description:
+      "သုတေသီများ၊ မော်ကွန်းထိန်းများ၊ ထုတ်ဝေသူများ၊ NLP အဖွဲ့များနှင့် ကျောင်းသားများက LEXO ကို အသုံးပြု၍ စကင်ဖတ်ထားတဲ့၊ ဖောင့်ဟောင်းသုံးထားတဲ့ မြန်မာ စာရွက်စာတမ်းများကို ရှာဖွေ၊ ပြင်ဆင်နိုင်တဲ့ မြန်မာ Unicode စာသားအဖြစ် ပြောင်းလဲပုံ။",
+    lede: "အသုံးများတဲ့ အလုပ်ငါးမျိုးအတွက် လုပ်ဆောင်နည်းတွေနဲ့ LEXO ရဲ့ ကန့်သတ်ချက်တွေကို လေ့လာနိုင်ပါတယ်။",
+    howLabel: "လုပ်ဆောင်ပုံ",
+    mindLabel: "သတိပြုရန်",
+    cases: [
+      {
+        id: "research",
+        title: "သုတေသီများနှင့် မော်ကွန်းတိုက်များ",
+        situation:
+          "စကင်ဖတ်ထားတဲ့ မြန်မာစာအုပ်တွေ၊ မဂ္ဂဇင်းတွေ၊ စာမူတွေကို ရှာဖွေ၊ ကိုးကား၊ ကောက်နုတ်နိုင်တဲ့ စာသားအဖြစ် ပြောင်းလိုသူတွေအတွက် အသုံးဝင်ပါတယ်။ ဒီလို စကင်ဖိုင်တွေမှာ ခေါင်းစီးနဲ့ စာမျက်နှာနံပါတ်တွေ ပါနေပြီး စာမျက်နှာနှစ်ခုတွဲ ဖြစ်နေတာမျိုးလည်း တွေ့ရတတ်ပါတယ်။",
+        steps: [
+          "စကင်ဖိုင်ကို ဖွင့်ပြီး PDF Tab တွင် စာမျက်နှာနှစ်ခုတွဲ ပုံများကို ခွဲပါ။",
+          "ခေါင်းစီးနှင့် စာမျက်နှာနံပါတ်များကို စာမျက်နှာအားလုံးအတွက် တစ်ပြိုင်နက် ဖြတ်တောက်ပါ။",
+          "Google Docs OCR လုပ်ပြီး စာမျက်နှာတစ်ခုချင်းကို မူရင်းပုံနှင့် တိုက်စစ်ပါ။",
+          "Markdown အဖြစ် သိမ်းပါ။ စာမျက်နှာတိုင်းကို ခေါင်းစဉ်ခွဲထားလို့ ကိုးကားထားတဲ့ စာသားက မူရင်းဘယ်စာမျက်နှာက လာသလဲဆိုတာ ပြန်ရှာနိုင်ပါတယ်။",
+        ],
+        caveat:
+          "OCR ရလဒ်ကို မကိုးကားမီ စစ်ဆေးရန် လိုပါတယ်။ LEXO က ကော်လံ၊ ဇယား သို့မဟုတ် အောက်ခြေမှတ်စုများကို မခွဲခြားနိုင်တဲ့အတွက် ရှုပ်ထွေးတဲ့ စာမျက်နှာအပြင်အဆင်များကို လက်ဖြင့် ပြန်ပြင်ရနိုင်ပါတယ်။",
+        links: [["docs/ocr-workflows/", "OCR အသုံးပြုနည်းများ"]],
+      },
+      {
+        id: "publishing",
+        title: "ထုတ်ဝေသူများနှင့် EPUB ထုတ်လုပ်ခြင်း",
+        situation:
+          "ပြန်မပုံနှိပ်တော့တဲ့ မြန်မာစာအုပ်တစ်အုပ်ကို e-book အဖြစ် ပြန်ထုတ်လိုပြီး ပုံနှိပ်စာအုပ် ဒါမှမဟုတ် PDF ဟောင်းသာ ကျန်ရှိတဲ့အခါ အသုံးပြုနိုင်ပါတယ်။",
+        steps: [
+          "စာအုပ်ကို စကင်ဖတ်ပါ သို့မဟုတ် ရှိပြီးသားဖိုင်ကို ဖွင့်ပါ။ စာမျက်နှာနှစ်ခုတွဲ ပုံတွေကို ခွဲပြီး စာသားဧရိယာအတိုင်း ဖြတ်တောက်ပါ။",
+          "OCR လုပ်ပြီး ရလာတဲ့စာသားကို ဘေးမှာ ပြထားတဲ့ မူရင်းစာမျက်နှာနဲ့ ယှဉ်စစ်ကာ ပြင်ဆင်ပါ။",
+          "Markdown အဖြစ် သိမ်းပြီး မိမိ၏ EPUB Toolchain သို့ ထည့်ပါ။",
+        ],
+        caveat:
+          "LEXO က စာသားကိုသာ ထုတ်ပေးပြီး အပြင်အဆင် အပြီးသတ်ထားတဲ့ e-book ကို မထုတ်ပေးပါဘူး။ ခေါင်းစဉ်တွေ၊ စာလုံးအထူတွေနဲ့ ပုံတွေကို မိမိကိုယ်တိုင် ပြန်ထည့်ရပါမယ်။ မိမိမှာ ဒစ်ဂျစ်တယ်ပြောင်းခွင့် ရှိတဲ့ စာအုပ်တွေကိုသာ ပြောင်းပါ။",
+        links: [["docs/export-formats/", "သိမ်းဆည်းနိုင်တဲ့ File format တွေ"]],
+      },
+      {
+        id: "datasets",
+        title: "မြန်မာ NLP နှင့် LLM Dataset များ",
+        situation:
+          "Training နဲ့ evaluation အတွက် မြန်မာ Unicode စာသား အမြောက်အမြား လိုအပ်ပေမယ့် ရရှိထားတဲ့ အချက်အလက်အများစုက စကင် PDF တွေ ဖြစ်နေတဲ့အခါ အသုံးဝင်ပါတယ်။",
+        steps: [
+          "CLI မှ PDF Folder တွေကို Batch OCR လုပ်ပါ။ အလုပ်ရပ်သွားရင် ပြန်စပြီး ကျန်တဲ့ဖိုင်တွေကို ဆက်လုပ်နိုင်ပါတယ်။",
+          "စာရွက်စာတမ်းတစ်ခုချင်းကို JSONL အဖြစ်လည်း ထုတ်နိုင်ပါတယ်။ စာမျက်နှာတစ်ခုလျှင် မှတ်တမ်းတစ်ခု ပါဝင်ပြီး မူရင်းဖိုင်၊ စာမျက်နှာနံပါတ်နဲ့ စာသားရယူတဲ့ နည်းလမ်းကို ဖော်ပြထားပါတယ်။",
+          "မအောင်မြင်တဲ့ စာမျက်နှာများကို စစ်ထုတ်ပြီး SHA-256 doc_id ဖြင့် ထပ်နေတာတွေ ဖယ်ရှားပါ။",
+        ],
+        commands: [
+          "lexo ocr-batch ./pdfs --out-dir ./txt",
+          "lexo ocr book.pdf --format jsonl -o book.jsonl",
+        ],
+        caveat:
+          "စာသားများကို NFC စံပုံစံနဲ့ ညီအောင် ပြင်ဆင်ပြီး Zero-width Space များ ထိန်းထားပေမယ့် OCR အမှားများ ကျန်ရှိနေနိုင်ပါတယ်။ Training မလုပ်မီ နမူနာယူ စစ်ဆေးပါ။ မူရင်း စာရွက်စာတမ်းများ၏ လိုင်စင်ကို လေးစားပါ။",
+        links: [["docs/export-formats/", "သိမ်းဆည်းနိုင်တဲ့ File format တွေ"]],
+      },
+      {
+        id: "legacy-fonts",
+        title: "ဖောင့်ဟောင်းဖြင့် ရိုက်ထားတဲ့ စာရွက်စာတမ်းများ",
+        situation:
+          "Win Innwa လို ဖောင့်ဟောင်းတွေသုံးထားတဲ့ Office ဖိုင်နဲ့ PDF တွေမှာ မြန်မာစာကို မြင်ရပေမယ့် ကူးယူပြီး ပြန်ထည့်လိုက်ရင် လက်တင်စာလုံးတွေ ထွက်လာတတ်ပါတယ်။ စာသားရှာဖွေတာ၊ အက္ခရာစဉ်စီတာနဲ့ screen reader ဖြင့် ဖတ်တာတွေလည်း အဆင်မပြေပါဘူး။",
+        steps: [
+          "PDF ကို ဖွင့်ပါ။ Text layer မှ ထုတ်ယူမှုတွင် မြန်မာစာ ရှိသင့်တဲ့နေရာ၌ ASCII ပေါ်ရင် ဖောင့်ဟောင်း ဖြစ်ပါတယ်။",
+          "ဝှက်ထားတဲ့ ASCII ကို မဖတ်ဘဲ စာမျက်နှာပုံကို ဖတ်တဲ့ Google Docs OCR သို့ ပြောင်းပါ။",
+          "မြန်မာ Unicode စာသားကို ဖိုင်အဖြစ် သိမ်းပါ။",
+        ],
+        caveat:
+          "OCR က စာမျက်နှာပုံကို ပြန်ဖတ်တာဖြစ်လို့ ရလဒ်ကို စစ်ဆေးဖို့ လိုပါတယ်။ စာရွက်စာတမ်းကို Google သို့ တင်ပို့ခွင့်မရှိရင် မူရင်းစာသားကို ထုတ်ယူပြီး Win-to-Unicode converter ဖြင့် ပြောင်းနိုင်ပါတယ်။",
+        links: [
+          ["blog/win-innwa-pdf-to-unicode/", "Win Innwa PDF မှ Unicode သို့"],
+          ["docs/ocr-workflows/", "OCR အသုံးပြုနည်းများ"],
+        ],
+      },
+      {
+        id: "education",
+        title: "ကျောင်းသားများနှင့် ဆရာများ",
+        situation:
+          "မိတ္တူ ဒါမှမဟုတ် ဖုန်းနဲ့ ရိုက်ထားတဲ့ပုံတွေအဖြစ် ရရှိထားတဲ့ သင်ခန်းစာစာအုပ်တွေ၊ မေးခွန်းဟောင်းတွေနဲ့ သင်ခန်းစာစာရွက်တွေကို ရှာဖွေ၊ မှတ်ချက်ရေး၊ ပြင်ဆင်နိုင်တဲ့ စာသားအဖြစ် ပြောင်းနိုင်ပါတယ်။",
+        steps: [
+          "ဖုန်းနဲ့ ရိုက်ထားတဲ့ပုံတွေကို Image Set အဖြစ် ဖွင့်ပါ။ ပုံတစ်ပုံလျှင် စာမျက်နှာတစ်ခုအဖြစ် ထည့်ပြီး စာရွက်စာတမ်းတစ်ခု ပြုလုပ်ပေးပါတယ်။",
+          "စာသားသာ ကျန်အောင် စာမျက်နှာတစ်ခုချင်းကို လှည့်ပြီး ဖြတ်တောက်ပါ။",
+          "OCR လုပ်ပါ၊ အမှားအနည်းငယ်ကို ပြင်ပါ၊ Plain text အဖြစ် သိမ်းပါ။",
+        ],
+        caveat:
+          "စာမျက်နှာကို ပြန့်ပြန့်ထားပြီး အလင်းရောင်ကောင်းကောင်းနဲ့ ကြည်လင်အောင် ရိုက်ထားတဲ့ပုံတွေက ရလဒ်အကောင်းဆုံး ရစေပါတယ်။ လက်ရေးကိုမူ LEXO က အထူးတည်ဆောက် စမ်းသပ်ထားခြင်း မရှိပါဘူး။",
+        links: [["docs/desktop-app/", "Desktop app လမ်းညွှန်"]],
+      },
+    ],
+  },
+};
+
+const copy = content[lang];
+const crumbs = [{ label: t("breadcrumb.home"), href: href(lang) }, { label: t("nav.useCases") }];
+---
+
+<Base
+  lang={lang}
+  title={copy.title}
+  description={copy.description}
+  section="useCases"
+  path="use-cases/"
+  ogImage={`/og/${lang}/use-cases.png`}
+  jsonLd={[
+    breadcrumbList([
+      { name: t("breadcrumb.home"), url: new URL(href(lang), site).href },
+      { name: t("nav.useCases"), url: new URL(href(lang, "use-cases/"), site).href },
+    ]),
+  ]}
+>
+  <div class="wrap pt-10 pb-24 lg:pt-14">
+    <Breadcrumbs items={crumbs} label={t("breadcrumb.home")} />
+    <h1 class="display mt-6 max-w-5xl">{copy.h1}</h1>
+    <p class="lede mt-5">{copy.lede}</p>
+
+    <nav class="jump mt-10" aria-label={t("nav.useCases")}>
+      {copy.cases.map((c) => <a href={`#${c.id}`}>{c.title}</a>)}
+    </nav>
+
+    {
+      copy.cases.map((c) => (
+        <section id={c.id} class="case" aria-labelledby={`${c.id}-h`}>
+          <div class="case-head">
+            <h2 id={`${c.id}-h`} class="h2">
+              {c.title}
+            </h2>
+            <p class="lede mt-4">{c.situation}</p>
+          </div>
+          <div class="case-body">
+            <h3 class="folio">{copy.howLabel}</h3>
+            <ol class="steps">
+              {c.steps.map((s) => (
+                <li>{s}</li>
+              ))}
+            </ol>
+            {c.commands && (
+              <div class="mt-6 grid gap-2">
+                {c.commands.map((cmd) => (
+                  <Command lang={lang} command={cmd} />
+                ))}
+              </div>
+            )}
+            <div class="mind">
+              <h3 class="folio">{copy.mindLabel}</h3>
+              <p class="mt-2 text-ink-2">{c.caveat}</p>
+            </div>
+            <ul class="mt-6 flex flex-wrap gap-x-6 gap-y-2">
+              {c.links.map(([path, label]) => (
+                <li>
+                  <a class="link inline-flex items-center gap-1.5 font-medium" href={href(lang, path)}>
+                    {label}
+                    <Icon name="arrow" size={16} />
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      ))
+    }
+  </div>
+</Base>
+
+<style>
+  .jump {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .jump a {
+    padding: 0.45rem 0.8rem;
+    border: 1px solid var(--rule-strong);
+    border-radius: 3px;
+    font-size: var(--fs-ui);
+    text-decoration: none;
+    color: var(--ink-2);
+    transition:
+      border-color 160ms ease,
+      color 160ms ease;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .jump a:hover {
+      border-color: var(--ink);
+      color: var(--ink);
+    }
+  }
+
+  .case {
+    display: grid;
+    gap: 2rem;
+    margin-top: clamp(3.5rem, 7vw, 5.5rem);
+    padding-top: 2rem;
+    border-top: 1.5px solid var(--ink);
+    scroll-margin-top: 6rem;
+  }
+
+  @media (min-width: 64rem) {
+    .case {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 4rem;
+    }
+  }
+
+  .steps {
+    margin: 0.75rem 0 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: s;
+    border-top: 1px solid var(--rule);
+  }
+
+  .steps li {
+    counter-increment: s;
+    position: relative;
+    padding: 0.8rem 0 0.8rem 2.25rem;
+    border-bottom: 1px solid var(--rule);
+    color: var(--ink-2);
+  }
+
+  .steps li::before {
+    content: counter(s, decimal-leading-zero);
+    position: absolute;
+    left: 0;
+    top: 0.95rem;
+    font-family: var(--font-mono);
+    font-stretch: 87%;
+    font-size: var(--fs-label);
+    color: var(--scan-ink);
+  }
+
+  :global(:lang(my)) .steps li::before {
+    content: counter(s, myanmar);
+    font-family: var(--font-my);
+    font-size: var(--fs-sm);
+    top: 0.8rem;
+  }
+
+  .mind {
+    margin-top: 1.75rem;
+    padding: 1rem 1.1rem;
+    background: var(--platen);
+    border-radius: 3px;
+  }
+</style>

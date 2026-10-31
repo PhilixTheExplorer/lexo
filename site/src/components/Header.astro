@@ -1,0 +1,400 @@
+---
+import { Image } from "astro:assets";
+import logo from "~/assets/lexo.png";
+import { LINKS, VERSION } from "~/data/site";
+import { LANG_META, type Lang, type SectionKey } from "~/i18n/ui";
+import { localDigits, sectionHref, sectionIndex, useT } from "~/i18n/utils";
+import Icon from "./Icon.astro";
+
+interface Props {
+  lang: Lang;
+  section: SectionKey;
+  altHref: string | undefined;
+  pageLabel?: string | undefined;
+}
+
+const { lang, section, altHref, pageLabel } = Astro.props;
+const t = useT(lang);
+const other: Lang = lang === "en" ? "my" : "en";
+const nav = (["features", "useCases", "docs", "blog", "faq", "changelog"] as const).map((key) => ({
+  key,
+  href: sectionHref(lang, key),
+  label: t(`nav.${key}`),
+}));
+const folioNumber = String(sectionIndex(section)).padStart(2, "0");
+const folioLabel = pageLabel ?? t(`nav.${section}`);
+---
+
+<header class="masthead">
+  <a class="skip" href="#main">{t("nav.skip")}</a>
+  <div class="wrap bar">
+    <a class="brand" href={sectionHref(lang, "home")} aria-label="LEXO">
+      <Image src={logo} alt="" width={32} height={32} loading="eager" class="size-8" />
+      <span class="wordmark" lang="en">LEXO</span>
+    </a>
+
+    <nav class="primary" aria-label={t("nav.primary")} data-nav>
+      <ul>
+        {
+          nav.map((item) => (
+            <li>
+              <a href={item.href} aria-current={item.key === section ? "page" : undefined}>
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <div class="tools">
+      {
+        altHref && (
+          <a
+            class="tool lang-switch"
+            href={altHref}
+            hreflang={other}
+            lang={other}
+            title={t("lang.switch")}
+          >
+            <Icon name="globe" size={18} />
+            <span>{LANG_META[other].native}</span>
+          </a>
+        )
+      }
+      <button class="tool" type="button" data-theme-toggle aria-label={t("theme.toggle")}>
+        <Icon name="moon" size={18} class="theme-moon" />
+        <Icon name="sun" size={18} class="theme-sun" />
+      </button>
+      <a class="tool hide-sm" href={LINKS.repo} aria-label={t("nav.github")}>
+        <Icon name="github" size={20} />
+      </a>
+      <a class="btn btn-ink hide-md download-cta" href={sectionHref(lang, "download")}>
+        {t("nav.download")}
+      </a>
+      <button
+        class="tool menu-toggle"
+        type="button"
+        aria-expanded="false"
+        aria-controls="site-nav-panel"
+        data-menu-toggle
+      >
+        <Icon name="menu" size={20} class="menu-open" />
+        <Icon name="close" size={20} class="menu-close" />
+        <span class="sr-only" data-label-open={t("nav.menu")} data-label-close={t("nav.close")}
+          >{t("nav.menu")}</span
+        >
+      </button>
+    </div>
+  </div>
+  <div class="folio-strip">
+    <div class="wrap folio-row">
+      <p class="folio">
+        <span lang="en">LEXO</span>
+        <span aria-hidden="true">·</span>
+        <span>{localDigits(folioNumber, lang)}</span>
+        <span aria-hidden="true">/</span>
+        <span>{folioLabel}</span>
+      </p>
+      <p class="folio">
+        <a class="link" href={sectionHref(lang, "changelog")}><span lang="en">v{VERSION}</span></a>
+        <span aria-hidden="true">·</span>
+        <span lang="en">AGPL-3.0</span>
+      </p>
+    </div>
+  </div>
+
+  <div id="site-nav-panel" class="panel" hidden data-menu-panel>
+    <nav class="wrap" aria-label={t("nav.primary")}>
+      <ul>
+        {
+          nav.map((item) => (
+            <li>
+              <a href={item.href} aria-current={item.key === section ? "page" : undefined}>
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+        <li><a href={LINKS.repo}>GitHub</a></li>
+      </ul>
+      <a class="btn btn-ink w-full" href={sectionHref(lang, "download")}>
+        <Icon name="download" size={18} />
+        {t("cta.download")}
+      </a>
+    </nav>
+  </div>
+</header>
+
+<style>
+  .masthead {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    background: color-mix(in oklab, var(--paper) 92%, transparent);
+    backdrop-filter: saturate(1.4) blur(10px);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .skip {
+    position: absolute;
+    left: 1rem;
+    top: 0;
+    transform: translateY(-150%);
+    padding: 0.5rem 0.9rem;
+    background: var(--ink);
+    color: var(--paper);
+    border-radius: 3px;
+    z-index: 50;
+  }
+
+  .skip:focus {
+    transform: translateY(0.6rem);
+  }
+
+  .bar {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    height: 3.75rem;
+  }
+
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    text-decoration: none;
+    flex-shrink: 0;
+  }
+
+  .wordmark {
+    font-size: var(--fs-lg);
+    font-stretch: 118%;
+    font-weight: 800;
+    letter-spacing: 0.01em;
+    font-family: var(--font-display);
+  }
+
+  .primary {
+    display: none;
+    flex: 1;
+  }
+
+  .primary ul {
+    display: flex;
+    gap: 0.25rem;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .primary a,
+  .panel li a {
+    position: relative;
+    display: inline-block;
+    padding: 0.4rem 0.6rem;
+    font-size: var(--fs-sm);
+    font-weight: 540;
+    color: var(--ink-2);
+    text-decoration: none;
+    transition: color 160ms ease;
+  }
+
+  :global(:lang(my)) .primary a {
+    font-size: var(--fs-ui);
+  }
+
+  .primary a[aria-current="page"],
+  .panel a[aria-current="page"] {
+    color: var(--ink);
+  }
+
+  .primary a[aria-current="page"]::after {
+    content: "";
+    position: absolute;
+    left: 0.6rem;
+    right: 0.6rem;
+    bottom: -0.95rem;
+    height: 2px;
+    background: var(--scan);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .primary a:hover {
+      color: var(--ink);
+    }
+  }
+
+  .tools {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin-left: auto;
+  }
+
+  .tool {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-height: 2.5rem;
+    min-width: 2.5rem;
+    justify-content: center;
+    padding: 0 0.5rem;
+    border-radius: 3px;
+    color: var(--ink-2);
+    text-decoration: none;
+    font-size: var(--fs-ui);
+    transition:
+      color 160ms ease,
+      background-color 160ms ease,
+      transform 140ms var(--ease-out);
+  }
+
+  .tool:active {
+    transform: scale(0.96);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .tool:hover {
+      color: var(--ink);
+      background: var(--platen);
+    }
+  }
+
+  .lang-switch span {
+    font-weight: 560;
+  }
+
+  .download-cta {
+    min-height: 2.4rem;
+    margin-left: 0.5rem;
+    padding-inline: 0.95rem;
+  }
+
+  :global([data-theme="dark"]) .tool :global(.theme-moon),
+  :global(:root:not([data-theme="dark"])) .tool :global(.theme-sun) {
+    display: none;
+  }
+
+  .menu-toggle :global(.menu-close),
+  .menu-toggle[aria-expanded="true"] :global(.menu-open) {
+    display: none;
+  }
+
+  .menu-toggle[aria-expanded="true"] :global(.menu-close) {
+    display: block;
+  }
+
+  .folio-strip {
+    border-top: 1px solid var(--rule);
+  }
+
+  .folio-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-block: 0.35rem;
+  }
+
+  .folio-row p {
+    display: flex;
+    gap: 0.45rem;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .panel {
+    border-top: 1px solid var(--rule);
+    background: var(--paper);
+    max-height: calc(100dvh - 3.75rem);
+    overflow-y: auto;
+  }
+
+  .panel nav {
+    padding-block: 0.75rem 1.25rem;
+  }
+
+  .panel ul {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1rem;
+  }
+
+  .panel li a {
+    display: block;
+    padding: 0.8rem 0;
+    font-size: var(--fs-md);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .panel a[aria-current="page"] {
+    box-shadow: inset 3px 0 0 var(--scan);
+    padding-left: 0.75rem;
+  }
+
+  .hide-sm {
+    display: none;
+  }
+
+  .hide-md {
+    display: none;
+  }
+
+  @media (min-width: 40rem) {
+    .hide-sm {
+      display: inline-flex;
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .primary {
+      display: flex;
+      align-items: center;
+    }
+
+    .hide-md {
+      display: inline-flex;
+    }
+
+    .menu-toggle,
+    .panel {
+      display: none !important;
+    }
+  }
+</style>
+
+<script>
+  const root = document.documentElement;
+  for (const button of document.querySelectorAll<HTMLButtonElement>("[data-theme-toggle]")) {
+    button.addEventListener("click", () => {
+      const next = root.dataset.theme === "dark" ? "light" : "dark";
+      root.dataset.theme = next;
+      try {
+        localStorage.setItem("lexo-theme", next);
+      } catch {}
+    });
+  }
+
+  const toggle = document.querySelector<HTMLButtonElement>("[data-menu-toggle]");
+  const panel = document.querySelector<HTMLElement>("[data-menu-panel]");
+  if (toggle && panel) {
+    const label = toggle.querySelector<HTMLElement>(".sr-only");
+    const setOpen = (open: boolean) => {
+      toggle.setAttribute("aria-expanded", String(open));
+      panel.hidden = !open;
+      if (label) label.textContent = (open ? label.dataset.labelClose : label.dataset.labelOpen) ?? "";
+    };
+    toggle.addEventListener("click", () =>
+      setOpen(toggle.getAttribute("aria-expanded") !== "true"),
+    );
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && !panel.hidden) {
+        setOpen(false);
+        toggle.focus();
+      }
+    });
+    matchMedia("(min-width: 64rem)").addEventListener("change", () => setOpen(false));
+  }
+</script>

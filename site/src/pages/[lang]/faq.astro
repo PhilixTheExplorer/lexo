@@ -1,0 +1,346 @@
+---
+import Breadcrumbs from "~/components/Breadcrumbs.astro";
+import type { Lang } from "~/i18n/ui";
+import { href, staticLangPaths, useT } from "~/i18n/utils";
+import Base from "~/layouts/Base.astro";
+import { breadcrumbList, faqPage } from "~/lib/schema";
+
+export const getStaticPaths = staticLangPaths;
+
+const lang = Astro.params.lang as Lang;
+const t = useT(lang);
+const site = Astro.site ?? new URL("https://lexo.philix.dev");
+
+interface Group {
+  title: string;
+  items: { q: string; a: string; link?: [string, string] }[];
+}
+
+const content: Record<Lang, { title: string; h1: string; description: string; lede: string; groups: Group[] }> = {
+  en: {
+    title: "FAQ: LEXO Burmese OCR questions answered",
+    h1: "Questions people ask",
+    description:
+      "Answers about LEXO: is it free, does it work offline, what Google can see, why Google Cloud setup is needed, Burmese accuracy, legacy fonts, and exports.",
+    lede: "Straight answers, including the ones about limits.",
+    groups: [
+      {
+        title: "Cost and licence",
+        items: [
+          {
+            q: "Is LEXO free?",
+            a: "Yes. LEXO is free and open source under the AGPL-3.0-or-later licence. Google Docs OCR is also free to use through your own Google account, so there is no per-page or subscription cost.",
+          },
+          {
+            q: "Can I use LEXO for commercial work?",
+            a: "The AGPL lets you use LEXO for any purpose, including commercial digitization. If you modify LEXO and distribute it, or offer a modified version to others over a network, the AGPL requires you to share your changes under the same licence. Read the licence for the exact terms.",
+            link: ["https://github.com/PhilixTheExplorer/lexo/blob/main/LICENSE", "Read the licence"],
+          },
+        ],
+      },
+      {
+        title: "Privacy and the network",
+        items: [
+          {
+            q: "Does LEXO work offline?",
+            a: "Partly. Opening files, all PDF tools, extracting text from digital PDFs, proofreading, and exporting work offline. OCR of scans and images uses Google Docs OCR, which needs an internet connection. LEXO is local-first, not a fully offline OCR engine.",
+          },
+          {
+            q: "What does Google see when I run OCR?",
+            a: "The page images you OCR. LEXO uploads each page image to your own Google Drive, Google Docs OCR reads it, LEXO downloads the text, and then deletes the temporary file. Pages you don't OCR, and everything else you do in LEXO, stay on your computer.",
+            link: ["docs/privacy/", "Privacy and authentication"],
+          },
+          {
+            q: "Can LEXO read my other Google Drive files?",
+            a: "No. LEXO requests only the drive.file scope, which gives access only to files LEXO itself created.",
+          },
+          {
+            q: "Is there a LEXO account or server?",
+            a: "No. There is no LEXO account, no LEXO server in the middle, and no telemetry in the app. You use your own Google Cloud OAuth client, and the app talks to Google directly.",
+          },
+        ],
+      },
+      {
+        title: "Google setup",
+        items: [
+          {
+            q: "Why do I need to set up Google Cloud?",
+            a: "Google requires every app that uses Drive to authenticate with an OAuth client. Instead of shipping a shared client, LEXO has you create your own in a free Google Cloud project, which keeps your OCR traffic under your account. It's a one-time, six-step setup.",
+            link: ["docs/google-cloud-setup/", "Setup guide"],
+          },
+          {
+            q: "Why does Google say the app isn't verified?",
+            a: "Because you created the OAuth app yourself and it stays in Testing status. That's expected for personal use. Only the test users you listed can sign in.",
+          },
+          {
+            q: "Why do I have to sign in again every week?",
+            a: "Google expires sign-ins for OAuth apps in Testing status after roughly seven days. Run lexo login again; the desktop app offers to sign you in when it needs to.",
+          },
+          {
+            q: "Do I need a paid Google Cloud account?",
+            a: "No billing is needed for this setup. You can ignore free-trial offers in the console.",
+          },
+        ],
+      },
+      {
+        title: "Burmese text",
+        items: [
+          {
+            q: "How accurate is Burmese OCR?",
+            a: "LEXO doesn't promise a number. Results depend on the scan quality, the typeface, and the layout. Google Docs OCR handles printed Myanmar script well in practice, but you should proofread the output, which is why LEXO shows every page beside its text.",
+          },
+          {
+            q: "My PDF looks Burmese but gives English letters. Why?",
+            a: "It was typed in a legacy font such as Win Innwa, which draws Burmese on top of ASCII letters. Use Google Docs OCR to read the page visually and get Myanmar Unicode.",
+            link: ["blog/win-innwa-pdf-to-unicode/", "Legacy fonts, explained"],
+          },
+          {
+            q: "Does LEXO convert Zawgyi to Unicode?",
+            a: "No. If a PDF's text layer is Zawgyi-encoded, run Google Docs OCR on it to get standard Unicode from the page image.",
+          },
+          {
+            q: "Does LEXO read handwriting?",
+            a: "LEXO is built and tested for printed text. Google Docs OCR may recognize some handwriting, but it isn't a supported use case.",
+          },
+          {
+            q: "Can LEXO OCR languages other than Burmese?",
+            a: "Burmese is the default. Other languages, including other non-Latin scripts, can work through Google Docs OCR when you pass the right language hint with --lang, but LEXO is tuned for Burmese.",
+          },
+        ],
+      },
+      {
+        title: "Using LEXO",
+        items: [
+          {
+            q: "Which operating systems are supported?",
+            a: "Windows, macOS, and Linux, with Python 3.11, 3.12, or 3.13. LEXO's CI tests all three systems on all three Python versions.",
+          },
+          {
+            q: "Is there a standalone installer?",
+            a: "No. Install LEXO with uv, pipx, or pip. One package includes the CLI and the desktop app.",
+            link: ["download/", "Install LEXO"],
+          },
+          {
+            q: "Can it process a whole folder of PDFs?",
+            a: "Yes. Batch OCR writes one UTF-8 text file per PDF and skips files already done, so interrupted runs resume.",
+            link: ["docs/batch-ocr/", "Batch OCR"],
+          },
+          {
+            q: "Does LEXO keep page layout, tables, or columns?",
+            a: "No. LEXO extracts text page by page. Layout-aware extraction and table structure aren't built in yet.",
+          },
+          {
+            q: "Does it change my original PDF?",
+            a: "No. The desktop app edits a working copy. Your original is only replaced if you choose Save.",
+          },
+        ],
+      },
+    ],
+  },
+  my: {
+    title: "မေးလေ့ရှိတဲ့ မေးခွန်းများ - LEXO မြန်မာ OCR",
+    h1: "မေးလေ့ရှိတဲ့ မေးခွန်းများ",
+    description:
+      "LEXO အခမဲ့လား၊ အင်တာနက်မရှိဘဲ သုံးနိုင်သလား၊ Google က ဘာမြင်ရသလဲ၊ Google Cloud ပြင်ဆင်မှု ဘာကြောင့်လိုသလဲ၊ မြန်မာစာ တိကျမှု၊ ဖောင့်ဟောင်း၊ Zawgyi၊ Platform နှင့် ထုတ်ပေးတဲ့ ဖိုင်များအကြောင်း အဖြေများ။",
+    lede: "LEXO နဲ့ ပတ်သက်ပြီး သိလိုတာတွေနဲ့ ကန့်သတ်ချက်တွေကို ရှင်းပြထားပါတယ်။",
+    groups: [
+      {
+        title: "ကုန်ကျစရိတ်နှင့် လိုင်စင်",
+        items: [
+          {
+            q: "LEXO က အခမဲ့လား။",
+            a: "ဟုတ်ပါတယ်။ LEXO က AGPL-3.0-or-later လိုင်စင်ဖြင့် အခမဲ့ Open Source ဆော့ဖ်ဝဲ ဖြစ်ပါတယ်။ Google Docs OCR ကိုလည်း မိမိ Google အကောင့်ဖြင့် အခမဲ့ သုံးနိုင်တဲ့အတွက် စာမျက်နှာအလိုက် သို့မဟုတ် လစဉ်ကြေး မရှိပါဘူး။",
+          },
+          {
+            q: "စီးပွားဖြစ် အလုပ်များအတွက် သုံးနိုင်သလား။",
+            a: "AGPL က စီးပွားဖြစ် ဒစ်ဂျစ်တယ်ပြောင်းခြင်း အပါအဝင် ဘယ်ရည်ရွယ်ချက်အတွက်မဆို သုံးခွင့်ပေးပါတယ်။ LEXO ကို ပြင်ဆင်ပြီး ဖြန့်ဝေရင် သို့မဟုတ် ပြင်ဆင်ထားတဲ့ ဗားရှင်းကို Network မှတစ်ဆင့် အခြားသူများ သုံးခွင့်ပေးရင် ပြင်ဆင်ချက်များကို လိုင်စင်တူဖြင့် မျှဝေရန် AGPL က သတ်မှတ်ထားပါတယ်။ အတိအကျကို လိုင်စင်မှာ ဖတ်ပါ။",
+            link: ["https://github.com/PhilixTheExplorer/lexo/blob/main/LICENSE", "လိုင်စင် ဖတ်ရန်"],
+          },
+        ],
+      },
+      {
+        title: "ကိုယ်ရေးအချက်အလက် လုံခြုံမှုနှင့် အင်တာနက်",
+        items: [
+          {
+            q: "LEXO က အင်တာနက်မရှိဘဲ သုံးနိုင်သလား။",
+            a: "လုပ်ဆောင်ချက်အချို့ကို သုံးနိုင်ပါတယ်။ ဖိုင်ဖွင့်တာ၊ PDF ပြင်ဆင်တာ၊ ပါပြီးသားစာသား ထုတ်ယူတာ၊ စာသားစစ်ဆေးတာနဲ့ ဖိုင်သိမ်းတာတွေက အင်တာနက် မလိုပါဘူး။ စကင်ဖိုင်နဲ့ ပုံတွေကို OCR လုပ်တဲ့အခါမှာတော့ အင်တာနက်လိုတဲ့ Google Docs OCR ကို သုံးပါတယ်။ LEXO က မိမိစက်မှာ အဓိကလုပ်ဆောင်တဲ့ Local-first အက်ပ်ဖြစ်ပြီး offline OCR အက်ပ်တော့ မဟုတ်ပါဘူး။",
+          },
+          {
+            q: "OCR လုပ်တဲ့အခါ Google က ဘာမြင်ရသလဲ။",
+            a: "OCR လုပ်တဲ့ စာမျက်နှာပုံတွေကို Google သို့ ပို့ရပါတယ်။ LEXO က ပုံတစ်ခုချင်းကို မိမိ Google Drive သို့ တင်ပို့ပြီး Google Docs OCR ဖြင့် ဖတ်ပါတယ်။ စာသားကို ပြန်ယူပြီးနောက် ယာယီဖိုင်ကို ဖျက်ပါတယ်။ OCR မလုပ်တဲ့ စာမျက်နှာတွေနဲ့ အခြားပြင်ဆင်မှုတွေက မိမိကွန်ပျူတာမှာပဲ ရှိပါတယ်။",
+            link: ["docs/privacy/", "ကိုယ်ရေးအချက်အလက် လုံခြုံမှုနှင့် အကောင့်ဝင်ခြင်း"],
+          },
+          {
+            q: "LEXO က မိမိ Google Drive ရှိ အခြားဖိုင်များကို ဖတ်နိုင်သလား။",
+            a: "မဖတ်နိုင်ပါဘူး။ LEXO က ကိုယ်တိုင်ဖန်တီးတဲ့ ဖိုင်များကိုသာ သုံးခွင့်ပေးတဲ့ drive.file ခွင့်ပြုချက်ကိုသာ တောင်းပါတယ်။",
+          },
+          {
+            q: "LEXO အကောင့် သို့မဟုတ် ဆာဗာ ရှိသလား။",
+            a: "မရှိပါဘူး။ LEXO အကောင့်ဖွင့်ဖို့ မလိုသလို ကြားခံ LEXO ဆာဗာနဲ့ အက်ပ်အသုံးပြုမှု အချက်အလက်ကောက်ယူတာလည်း မရှိပါဘူး။ မိမိရဲ့ Google Cloud OAuth client ကို သုံးပြီး အက်ပ်က Google နဲ့ တိုက်ရိုက် ဆက်သွယ်ပါတယ်။",
+          },
+        ],
+      },
+      {
+        title: "Google ကြိုတင်ပြင်ဆင်မှု",
+        items: [
+          {
+            q: "Google Cloud ကို ဘာကြောင့် ကြိုတင်ပြင်ဆင်ရသလဲ။",
+            a: "Drive ကို သုံးတဲ့ အက်ပ်တိုင်းမှာ OAuth client ရှိဖို့ Google က သတ်မှတ်ထားပါတယ်။ LEXO မှာ အများသုံး client မထည့်ပေးထားတာကြောင့် မိမိရဲ့ အခမဲ့ Google Cloud project မှာ client တစ်ခု ဖန်တီးရပါတယ်။ ဒီလိုလုပ်ခြင်းဖြင့် OCR အတွက် ဆက်သွယ်မှုအားလုံးကို မိမိအကောင့်အောက်မှာပဲ ထားနိုင်ပါတယ်။ အဆင့်ခြောက်ဆင့်နဲ့ တစ်ကြိမ်သာ ပြင်ဆင်ဖို့ လိုပါတယ်။",
+            link: ["docs/google-cloud-setup/", "ပြင်ဆင်နည်း လမ်းညွှန်"],
+          },
+          {
+            q: "Google က အက်ပ်ကို အတည်မပြုရသေးဘူးလို့ ဘာကြောင့် ပြောသလဲ။",
+            a: "မိမိဖန်တီးထားတဲ့ OAuth အက်ပ်ကို Testing အဆင့်မှာ ထားလို့ ဖြစ်ပါတယ်။ ကိုယ်ပိုင်အသုံးပြုတဲ့ အက်ပ်မှာ ဒီသတိပေးချက် ပေါ်တာက ပုံမှန်ဖြစ်ပါတယ်။ Test users စာရင်းမှာ ထည့်ထားတဲ့ အကောင့်တွေနဲ့သာ ဝင်နိုင်ပါတယ်။",
+          },
+          {
+            q: "အပတ်တိုင်း အကောင့်ပြန်ဝင်ရတာ ဘာကြောင့်လဲ။",
+            a: "Testing အဆင့်ရှိ OAuth အက်ပ်တွေမှာ အကောင့်ဝင်ထားမှု သက်တမ်းက ၇ ရက်ခန့်ကြာရင် ကုန်ဆုံးတတ်ပါတယ်။ lexo login ဖြင့် အကောင့်ပြန်ဝင်ပါ။ Desktop app ကလည်း လိုအပ်တဲ့အခါ အကောင့်ပြန်ဝင်ဖို့ လမ်းညွှန်ပေးပါတယ်။",
+          },
+          {
+            q: "ငွေပေးရတဲ့ Google Cloud အကောင့် လိုသလား။",
+            a: "ဒီပြင်ဆင်မှု အတွက် Billing မလိုပါဘူး။ Console ရှိ Free Trial ကမ်းလှမ်းချက်များကို လျစ်လျူရှုနိုင်ပါတယ်။",
+          },
+        ],
+      },
+      {
+        title: "မြန်မာစာ",
+        items: [
+          {
+            q: "မြန်မာ OCR က ဘယ်လောက် တိကျသလဲ။",
+            a: "LEXO က တိကျမှု ရာခိုင်နှုန်းကို အာမမခံထားပါဘူး။ ရလဒ်က စကင် အရည်အသွေး၊ စာလုံးပုံစံနှင့် စာမျက်နှာအပြင်အဆင်ပေါ် မူတည်ပါတယ်။ Google Docs OCR က ပုံနှိပ် မြန်မာစာကို လက်တွေ့တွင် ကောင်းစွာ ဖတ်နိုင်ပေမယ့် ရလဒ်ကို စစ်ဆေးသင့်ပါတယ်။ ထို့ကြောင့် LEXO က စာမျက်နှာတိုင်းကို စာသားနှင့် ယှဉ်ပြခြင်း ဖြစ်ပါတယ်။",
+          },
+          {
+            q: "PDF မှာ မြန်မာစာလို့ မြင်ရပေမယ့် ကူးယူရင် အင်္ဂလိပ်စာလုံးတွေ ထွက်လာတာ ဘာကြောင့်လဲ။",
+            a: "ASCII စာလုံးတွေကို မြန်မာစာပုံစံနဲ့ ပြသတဲ့ Win Innwa ကဲ့သို့ ဖောင့်ဟောင်းဖြင့် ရိုက်ထားခြင်း ဖြစ်ပါတယ်။ စာမျက်နှာကို ပုံအဖြစ် ဖတ်ပြီး မြန်မာ Unicode ရရှိရန် Google Docs OCR ကို သုံးပါ။",
+            link: ["blog/win-innwa-pdf-to-unicode/", "ဖောင့်ဟောင်းများ အကြောင်း"],
+          },
+          {
+            q: "LEXO က Zawgyi ကို Unicode သို့ ပြောင်းပေးသလား။",
+            a: "မပြောင်းပေးပါဘူး။ PDF ၏ Text layer က Zawgyi ဖြစ်နေပါက စာမျက်နှာပုံမှ စံ Unicode ရရှိရန် Google Docs OCR ဖြင့် စတင်ပါ။",
+          },
+          {
+            q: "လက်ရေးကို ဖတ်နိုင်သလား။",
+            a: "LEXO ကို ပုံနှိပ်စာအတွက် တည်ဆောက် စမ်းသပ်ထားပါတယ်။ Google Docs OCR က လက်ရေး အချို့ကို ဖတ်နိုင်တာမျိုး ရှိပေမယ့် LEXO က လက်ရေးအတွက် အထောက်အပံ့ မပေးထားပါဘူး။",
+          },
+          {
+            q: "မြန်မာစာ မဟုတ်တဲ့ ဘာသာများကို OCR လုပ်နိုင်သလား။",
+            a: "OCR ဘာသာစကားကို မြန်မာစာအဖြစ် မူလကတည်းက သတ်မှတ်ထားပါတယ်။ --lang ဖြင့် ဘာသာစကားကို မှန်ကန်စွာ သတ်မှတ်ပေးရင် လက်တင်အက္ခရာ မသုံးတဲ့ ဘာသာစကားတွေအပါအဝင် အခြားဘာသာစကားတွေကိုလည်း Google Docs OCR က ဖတ်နိုင်ပါတယ်။ သို့သော် LEXO ကို မြန်မာစာအတွက် အဓိက ချိန်ညှိထားတာ ဖြစ်ပါတယ်။",
+          },
+        ],
+      },
+      {
+        title: "LEXO ကို အသုံးပြုခြင်း",
+        items: [
+          {
+            q: "ဘယ် OS တွေမှာ သုံးနိုင်သလဲ။",
+            a: "Python 3.11၊ 3.12 သို့မဟုတ် 3.13 ပါတဲ့ Windows၊ macOS နှင့် Linux။ LEXO ၏ CI တွင် OS သုံးမျိုးလုံးကို Python ဗားရှင်း သုံးမျိုးလုံးဖြင့် စမ်းသပ်ပါတယ်။",
+          },
+          {
+            q: "သီးခြား Installer ရှိသလား။",
+            a: "မရှိပါဘူး။ uv၊ pipx သို့မဟုတ် pip ဖြင့် ထည့်သွင်းပါ။ ပက်ကေ့ချ်တစ်ခုတည်းတွင် CLI နှင့် Desktop app ပါဝင်ပါတယ်။",
+            link: ["download/", "LEXO ကို ထည့်သွင်းရန်"],
+          },
+          {
+            q: "PDF Folder တစ်ခုလုံးကို လုပ်ဆောင်နိုင်သလား။",
+            a: "လုပ်ဆောင်နိုင်ပါတယ်။ Batch OCR က PDF တစ်ဖိုင်လျှင် UTF-8 စာသားဖိုင်တစ်ခု ထုတ်ပေးပြီး ရလဒ်ဖိုင် ရှိပြီးသားဆိုရင် ကျော်ပေးပါတယ်။ အလုပ်ရပ်သွားရင် ပြန်စပြီး ကျန်တဲ့ဖိုင်တွေကို ဆက်လုပ်နိုင်ပါတယ်။",
+            link: ["docs/batch-ocr/", "Batch OCR"],
+          },
+          {
+            q: "စာမျက်နှာ အပြင်အဆင်၊ ဇယား သို့မဟုတ် ကော်လံများကို ထိန်းထားသလား။",
+            a: "မထိန်းပါဘူး။ LEXO က စာမျက်နှာအလိုက် စာသားကို ထုတ်ယူပါတယ်။ စာမျက်နှာအပြင်အဆင်ကို ခွဲခြားပြီး မူရင်းဇယားပုံစံအတိုင်း ထုတ်ပေးတဲ့ လုပ်ဆောင်ချက် မပါသေးပါဘူး။",
+          },
+          {
+            q: "မူရင်း PDF ကို ပြောင်းလဲသလား။",
+            a: "မပြောင်းပါဘူး။ Desktop app က ပြင်ဆင်ဖို့ ဖန်တီးထားတဲ့ မိတ္တူကိုသာ ပြင်ဆင်ပါတယ်။ Save ကို ရွေးမှသာ မူရင်းကို အစားထိုးပါတယ်။",
+          },
+        ],
+      },
+    ],
+  },
+};
+
+const copy = content[lang];
+const all = copy.groups.flatMap((g) => g.items);
+const crumbs = [{ label: t("breadcrumb.home"), href: href(lang) }, { label: t("nav.faq") }];
+const linkHref = (path: string) => (path.startsWith("http") ? path : href(lang, path));
+---
+
+<Base
+  lang={lang}
+  title={copy.title}
+  description={copy.description}
+  section="faq"
+  path="faq/"
+  ogImage={`/og/${lang}/faq.png`}
+  jsonLd={[
+    faqPage(lang, all),
+    breadcrumbList([
+      { name: t("breadcrumb.home"), url: new URL(href(lang), site).href },
+      { name: t("nav.faq"), url: new URL(href(lang, "faq/"), site).href },
+    ]),
+  ]}
+>
+  <div class="wrap pt-10 pb-24 lg:pt-14">
+    <Breadcrumbs items={crumbs} label={t("breadcrumb.home")} />
+    <h1 class="display mt-6">{copy.h1}</h1>
+    <p class="lede mt-5">{copy.lede}</p>
+
+    {
+      copy.groups.map((g, gi) => (
+        <section class="group" aria-labelledby={`faq-g${gi}`}>
+          <h2 id={`faq-g${gi}`} class="folio group-h">
+            {g.title}
+          </h2>
+          <div class="qa-list">
+            {g.items.map((item) => (
+              <div class="qa">
+                <h3 class="h3 q">{item.q}</h3>
+                <div class="a">
+                  <p>{item.a}</p>
+                  {item.link && (
+                    <a class="link mt-2 inline-block font-medium" href={linkHref(item.link[0])}>
+                      {item.link[1]}
+                    </a>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      ))
+    }
+  </div>
+</Base>
+
+<style>
+  .group {
+    margin-top: clamp(3rem, 6vw, 4.5rem);
+  }
+
+  .group-h {
+    margin-bottom: 0.75rem;
+  }
+
+  .qa-list {
+    border-top: 1.5px solid var(--ink);
+  }
+
+  .qa {
+    display: grid;
+    gap: 0.6rem;
+    padding: 1.4rem 0;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .a {
+    color: var(--ink-2);
+    max-width: 44rem;
+  }
+
+  @media (min-width: 56rem) {
+    .qa {
+      grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+      gap: 3rem;
+    }
+  }
+</style>

@@ -1,0 +1,206 @@
+---
+import Breadcrumbs from "~/components/Breadcrumbs.astro";
+import Icon from "~/components/Icon.astro";
+import { LINKS } from "~/data/site";
+import type { Lang } from "~/i18n/ui";
+import { href, staticLangPaths, useT } from "~/i18n/utils";
+import Base from "~/layouts/Base.astro";
+import { inlineMarkdown, readChangelog } from "~/lib/changelog";
+import { breadcrumbList } from "~/lib/schema";
+
+export const getStaticPaths = staticLangPaths;
+
+const lang = Astro.params.lang as Lang;
+const t = useT(lang);
+const site = Astro.site ?? new URL("https://lexo.philix.dev");
+const releases = readChangelog();
+
+const copy = {
+  en: {
+    title: "Changelog: LEXO release history",
+    h1: "Changelog",
+    description: `Every LEXO release from ${releases.at(-1)?.version} to ${releases[0]?.version}: new features, fixes, and changes, taken straight from the project's CHANGELOG.md.`,
+    lede: "Every release, newest first. This page is generated from the repository's CHANGELOG.md, so it always matches the code.",
+    note: undefined as string | undefined,
+    tag: "Release on GitHub",
+    source: "CHANGELOG.md on GitHub",
+    headings: {} as Record<string, string>,
+  },
+  my: {
+    title: "ပြောင်းလဲမှုမှတ်တမ်း - LEXO ဗားရှင်းများ",
+    h1: "ပြောင်းလဲမှုမှတ်တမ်း",
+    description: `LEXO ${releases.at(-1)?.version} မှ ${releases[0]?.version} အထိ ဗားရှင်းတိုင်းရဲ့ လုပ်ဆောင်ချက်အသစ်များ၊ ပြင်ဆင်ချက်များနှင့် ပြောင်းလဲမှုများ။`,
+    lede: "နောက်ဆုံးဗားရှင်းကစပြီး အစဉ်လိုက် ဖော်ပြထားပါတယ်။ Repository ထဲက CHANGELOG.md မှ အလိုအလျောက် ထုတ်ထားတဲ့အတွက် code နဲ့ ကိုက်ညီပါတယ်။",
+    note: "ဗားရှင်းမှတ်တမ်းတွေကို ရေးသားသူတွေရဲ့ မူရင်းအင်္ဂလိပ်စာသားအတိုင်း ဖော်ပြထားပါတယ်။",
+    tag: "GitHub ရှိ ဗားရှင်း",
+    source: "GitHub ရှိ CHANGELOG.md",
+    headings: { Added: "အသစ်ထည့်သွင်းချက်များ", Fixed: "ပြင်ဆင်ချက်များ", Changed: "ပြောင်းလဲချက်များ", Removed: "ဖယ်ရှားချက်များ" } as Record<string, string>,
+  },
+}[lang];
+
+const crumbs = [{ label: t("breadcrumb.home"), href: href(lang) }, { label: t("nav.changelog") }];
+---
+
+<Base
+  lang={lang}
+  title={copy.title}
+  description={copy.description}
+  section="changelog"
+  path="changelog/"
+  ogImage={`/og/${lang}/changelog.png`}
+  jsonLd={[
+    breadcrumbList([
+      { name: t("breadcrumb.home"), url: new URL(href(lang), site).href },
+      { name: t("nav.changelog"), url: new URL(href(lang, "changelog/"), site).href },
+    ]),
+  ]}
+>
+  <div class="wrap pt-10 pb-24 lg:pt-14">
+    <Breadcrumbs items={crumbs} label={t("breadcrumb.home")} />
+    <h1 class="display mt-6">{copy.h1}</h1>
+    <p class="lede mt-5">{copy.lede}</p>
+    {copy.note && <p class="mt-3 text-sm text-ink-3">{copy.note}</p>}
+
+    <ol class="releases mt-14">
+      {
+        releases.map((r, i) => (
+          <li id={`v${r.version}`} class="release">
+            <div class="release-meta">
+              <h2 class="version" lang="en">
+                <a href={`#v${r.version}`}>{r.version}</a>
+              </h2>
+              {r.date && (
+                <p class="folio mt-1">
+                  <time datetime={r.date}>{r.date}</time>
+                </p>
+              )}
+              {i === 0 && <p class="tag mt-3">{lang === "my" ? "နောက်ဆုံး" : "Latest"}</p>}
+              <a class="link mt-3 inline-flex items-center gap-1.5 text-sm text-ink-3" href={`${LINKS.repo}/releases/tag/v${r.version}`}>
+                {copy.tag}
+                <Icon name="external" size={14} />
+              </a>
+            </div>
+            <div class="release-body" lang="en">
+              {r.intro.map((p) => (
+                <p class="text-ink-2" set:html={inlineMarkdown(p)} />
+              ))}
+              {r.sections.map((s) => (
+                <section>
+                  <h3 class="section-h" lang={lang}>
+                    {copy.headings[s.heading] ?? s.heading}
+                  </h3>
+                  {s.paragraphs.map((p) => (
+                    <p class="text-ink-2" set:html={inlineMarkdown(p)} />
+                  ))}
+                  <ul>
+                    {s.items.map((item) => (
+                      <li set:html={inlineMarkdown(item)} />
+                    ))}
+                  </ul>
+                </section>
+              ))}
+            </div>
+          </li>
+        ))
+      }
+    </ol>
+
+    <a class="link mt-12 inline-flex items-center gap-2" href={LINKS.changelog}>
+      {copy.source}
+      <Icon name="external" size={16} />
+    </a>
+  </div>
+</Base>
+
+<style>
+  .releases {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 1.5px solid var(--ink);
+  }
+
+  .release {
+    display: grid;
+    gap: 1.25rem;
+    padding: 2.25rem 0;
+    border-bottom: 1px solid var(--rule);
+    scroll-margin-top: 6rem;
+  }
+
+  @media (min-width: 56rem) {
+    .release {
+      grid-template-columns: 14rem minmax(0, 1fr);
+      gap: 3rem;
+    }
+
+    .release-meta {
+      position: sticky;
+      top: 7.5rem;
+      align-self: start;
+    }
+  }
+
+  .release-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .version {
+    font-family: var(--font-mono);
+    font-stretch: 87%;
+    font-size: var(--fs-xl);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+
+  .version a {
+    text-decoration: none;
+  }
+
+  .release-body {
+    max-width: 46rem;
+    display: grid;
+    gap: 1.25rem;
+  }
+
+  .section-h {
+    font-size: var(--fs-sm);
+    font-weight: 660;
+    color: var(--ink);
+    margin-bottom: 0.5rem;
+  }
+
+  .release-body ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 0.6rem;
+  }
+
+  .release-body li {
+    position: relative;
+    padding-left: 1.25rem;
+    color: var(--ink-2);
+  }
+
+  .release-body li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.72em;
+    width: 0.55rem;
+    height: 1.5px;
+    background: var(--rule-strong);
+  }
+
+  .release-body :global(code) {
+    font-size: 0.82em;
+    background: var(--platen);
+    color: var(--ink);
+    padding: 0.08em 0.32em;
+    border-radius: 2px;
+  }
+</style>

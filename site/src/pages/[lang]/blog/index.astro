@@ -1,0 +1,156 @@
+---
+import Breadcrumbs from "~/components/Breadcrumbs.astro";
+import Icon from "~/components/Icon.astro";
+import type { Lang } from "~/i18n/ui";
+import { formatDate, href, staticLangPaths, useT } from "~/i18n/utils";
+import Base from "~/layouts/Base.astro";
+import { postSlug, postsFor } from "~/lib/blog";
+import { breadcrumbList } from "~/lib/schema";
+
+export const getStaticPaths = staticLangPaths;
+
+const lang = Astro.params.lang as Lang;
+const t = useT(lang);
+const site = Astro.site ?? new URL("https://lexo.philix.dev");
+const posts = await postsFor(lang);
+
+const copy = {
+  en: {
+    title: "Blog: Burmese OCR guides and tutorials",
+    h1: "Guides for Burmese text work",
+    description:
+      "Practical articles on Burmese OCR: scanned Myanmar PDFs to Unicode, legacy Win Innwa fonts, digital vs scanned PDFs, archives, and NLP datasets.",
+    lede: "Practical, step-by-step articles on getting Burmese text out of documents, written from what LEXO actually does.",
+    rss: "RSS feed",
+  },
+  my: {
+    title: "ဆောင်းပါးများ - မြန်မာ OCR လမ်းညွှန်များ",
+    h1: "မြန်မာစာသား ထုတ်ယူရေး လမ်းညွှန်များ",
+    description:
+      "မြန်မာ OCR လက်တွေ့လမ်းညွှန်များ - စကင် PDF မှ Unicode စာသားထုတ်ယူနည်း၊ Win Innwa ဖောင့်ဟောင်း ပြဿနာဖြေရှင်းနည်းနှင့် စာသားပါ PDF နဲ့ စကင် PDF ကွာခြားချက်။",
+    lede: "စာရွက်စာတမ်းတွေကနေ မြန်မာစာသား ထုတ်ယူနည်းကို အဆင့်ဆင့် ရှင်းပြထားတဲ့ ဆောင်းပါးတွေ ဖြစ်ပါတယ်။ LEXO ရဲ့ လက်ရှိလုပ်ဆောင်ချက်တွေကို အခြေခံ ရေးသားထားပါတယ်။",
+    rss: "RSS Feed",
+  },
+}[lang];
+
+const [lead, ...rest] = posts;
+const crumbs = [{ label: t("breadcrumb.home"), href: href(lang) }, { label: t("nav.blog") }];
+---
+
+<Base
+  lang={lang}
+  title={copy.title}
+  description={copy.description}
+  section="blog"
+  path="blog/"
+  ogImage={`/og/${lang}/blog.png`}
+  jsonLd={[
+    breadcrumbList([
+      { name: t("breadcrumb.home"), url: new URL(href(lang), site).href },
+      { name: t("nav.blog"), url: new URL(href(lang, "blog/"), site).href },
+    ]),
+  ]}
+>
+  <div class="wrap pt-10 pb-24 lg:pt-14">
+    <Breadcrumbs items={crumbs} label={t("breadcrumb.home")} />
+    <div class="mt-6 flex flex-wrap items-end justify-between gap-6">
+      <div>
+        <h1 class="display max-w-4xl">{copy.h1}</h1>
+        <p class="lede mt-5">{copy.lede}</p>
+      </div>
+      <a class="link inline-flex items-center gap-2 text-sm" href={href(lang, "blog/rss.xml")}>{copy.rss}</a>
+    </div>
+
+    {
+      lead && (
+        <a class="lead" href={href(lang, `blog/${postSlug(lead)}/`)}>
+          <p class="folio">
+            <time datetime={lead.data.published.toISOString()}>
+              {formatDate(lead.data.published, lang)}
+            </time>{" "}
+            · {t("blog.minutes", { n: lead.data.minutes })}
+          </p>
+          <h2 class="h2 mt-3 max-w-4xl">{lead.data.title}</h2>
+          <p class="mt-4 max-w-3xl text-ink-2">{lead.data.description}</p>
+          <span class="mt-6 inline-flex items-center gap-2 font-semibold">
+            {t("blog.readMore")}
+            <Icon name="arrow" size={18} />
+          </span>
+        </a>
+      )
+    }
+
+    <ul class="list">
+      {
+        rest.map((post) => (
+          <li>
+            <a href={href(lang, `blog/${postSlug(post)}/`)}>
+              <p class="folio">
+                <time datetime={post.data.published.toISOString()}>
+                  {formatDate(post.data.published, lang)}
+                </time>{" "}
+                · {t("blog.minutes", { n: post.data.minutes })}
+              </p>
+              <h2 class="h3 mt-2 text-ink">{post.data.title}</h2>
+              <p class="mt-2 text-ink-2">{post.data.description}</p>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</Base>
+
+<style>
+  .lead {
+    display: block;
+    margin-top: 3.5rem;
+    padding: clamp(1.5rem, 4vw, 2.75rem);
+    background: var(--paper-raised);
+    border-radius: 3px;
+    box-shadow:
+      0 0 0 1px var(--rule),
+      var(--shadow);
+    text-decoration: none;
+    transition: box-shadow 200ms ease;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .lead:hover {
+      box-shadow:
+        0 0 0 1px var(--rule-strong),
+        var(--shadow);
+    }
+  }
+
+  .list {
+    list-style: none;
+    padding: 0;
+    margin: 3.5rem 0 0;
+    border-top: 1.5px solid var(--ink);
+    display: grid;
+  }
+
+  .list a {
+    display: block;
+    padding: 1.6rem 0;
+    border-bottom: 1px solid var(--rule);
+    text-decoration: none;
+  }
+
+  @media (min-width: 64rem) {
+    .list {
+      grid-template-columns: 1fr 1fr;
+      column-gap: 3rem;
+    }
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .list a:hover h2 {
+      text-decoration: underline;
+      text-decoration-color: var(--scan);
+      text-decoration-thickness: 1.5px;
+      text-underline-offset: 0.2em;
+    }
+  }
+</style>

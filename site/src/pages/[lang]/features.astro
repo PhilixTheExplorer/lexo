@@ -1,0 +1,486 @@
+---
+import type { ImageMetadata } from "astro";
+import batchDialog from "~/assets/screens/app-batch-dialog.webp";
+import cropEditor from "~/assets/screens/app-crop-editor.webp";
+import exportShot from "~/assets/screens/app-export.webp";
+import ocrResult from "~/assets/screens/app-ocr-result.webp";
+import ocrRunning from "~/assets/screens/app-ocr-running.webp";
+import proofread from "~/assets/screens/app-proofread.webp";
+import splitSpread from "~/assets/screens/app-split-spread.webp";
+import textLayer from "~/assets/screens/app-text-layer.webp";
+import welcome from "~/assets/screens/app-welcome.webp";
+import legacyFrame from "~/assets/screens/legacy-font-extract.webp";
+import Breadcrumbs from "~/components/Breadcrumbs.astro";
+import Command from "~/components/Command.astro";
+import Icon from "~/components/Icon.astro";
+import Shot from "~/components/Shot.astro";
+import type { Lang } from "~/i18n/ui";
+import { href, staticLangPaths, useT } from "~/i18n/utils";
+import Base from "~/layouts/Base.astro";
+import { breadcrumbList, softwareApplication } from "~/lib/schema";
+
+export const getStaticPaths = staticLangPaths;
+
+const lang = Astro.params.lang as Lang;
+const t = useT(lang);
+const site = Astro.site ?? new URL("https://lexo.philix.dev");
+
+interface Feature {
+  id: string;
+  title: string;
+  body: string[];
+  image?: ImageMetadata;
+  alt?: string;
+  commands?: string[];
+  link?: [string, string];
+}
+
+const content: Record<
+  Lang,
+  { title: string; h1: string; description: string; lede: string; features: Feature[] }
+> = {
+  en: {
+    title: "Features: Burmese OCR, PDF tools, and proofreading",
+    h1: "What LEXO does",
+    description:
+      "Everything LEXO does: Burmese-first Google Docs OCR, text-layer extraction, batch OCR, PDF crop/split/merge, proofreading, and TXT, Markdown, JSONL export.",
+    lede: "Every capability below exists in the current release, and each one is shown in the real app. Nothing here is a roadmap.",
+    features: [
+      {
+        id: "burmese-ocr",
+        title: "Burmese-first OCR",
+        body: [
+          "Burmese is the default OCR language. You don't pick it, configure it, or install a language pack.",
+          "LEXO uses Google Docs OCR, which reads Myanmar script well, and wraps it in a workflow built around Burmese documents: scanned books, old PDFs, and legacy-font files.",
+        ],
+        image: ocrResult,
+        alt: "A scanned Burmese page beside its Google Docs OCR text in LEXO.",
+        link: ["docs/ocr-workflows/", "OCR workflows"],
+      },
+      {
+        id: "google-docs-ocr",
+        title: "Google Docs OCR through your own account",
+        body: [
+          "No paid OCR API, no per-page fee, and no large local model download. LEXO sends each page image to your own Google Drive, lets Google Docs OCR read it, takes the text, and deletes the temporary file.",
+          "It needs a one-time Google Cloud setup, and access is limited to the drive.file scope: only the files LEXO creates.",
+        ],
+        image: ocrRunning,
+        alt: "LEXO running Google Docs OCR, with per-page progress.",
+        link: ["docs/google-cloud-setup/", "Google Cloud setup"],
+      },
+      {
+        id: "text-layer",
+        title: "Smart text extraction for digital PDFs",
+        body: [
+          "A PDF exported from a word processor already contains its text. LEXO copies it straight out: instant, lossless, offline, and without an account.",
+          "From the CLI, lexo ocr routes page by page, so a digital document with a few scanned pages only OCRs the scans. Text layers made of unusable legacy glyphs are detected and OCR'd instead.",
+        ],
+        image: textLayer,
+        alt: "Text extracted from a digital Burmese PDF's text layer in LEXO.",
+        commands: ["lexo extract report.pdf -o report.txt"],
+      },
+      {
+        id: "scanned-ocr",
+        title: "Scanned PDFs and images",
+        body: [
+          "Open a scanned PDF, a single image, or a set of images as one document. PNG, JPEG, TIFF, and BMP all work.",
+          "Results arrive page by page. Transient failures retry automatically, and Retry Failed Pages re-runs only what still failed, so a long book never has to start over.",
+        ],
+        commands: ["lexo ocr scan.pdf --lang my -o scan.txt"],
+      },
+      {
+        id: "legacy-fonts",
+        title: "A way through legacy-font PDFs",
+        body: [
+          "Burmese typed in Win Innwa or Win Myanmar is stored as ASCII letters. Extracting it gives you Latin gibberish. Run Google Docs OCR instead and LEXO reads the page as an image, returning real Myanmar Unicode.",
+        ],
+        image: legacyFrame,
+        alt: "ASCII characters extracted from a Win Innwa Burmese PDF in LEXO's text pane.",
+        link: ["blog/win-innwa-pdf-to-unicode/", "Legacy fonts, explained"],
+      },
+      {
+        id: "batch",
+        title: "Batch PDF OCR",
+        body: [
+          "OCR a folder of PDFs, or a hand-picked list, into one UTF-8 .txt per file. Existing outputs are skipped, so an interrupted batch resumes where it stopped.",
+          "In the app: Batch OCR PDFs on the welcome screen, or Ctrl+Alt+O. From the CLI: lexo ocr-batch.",
+        ],
+        image: batchDialog,
+        alt: "Batch OCR PDFs dialog in LEXO.",
+        commands: ["lexo ocr-batch ./pdfs --out-dir ./txt"],
+        link: ["docs/batch-ocr/", "Batch OCR guide"],
+      },
+      {
+        id: "pdf-tools",
+        title: "Crop, split, rotate, merge",
+        body: [
+          "Prepare pages before OCR, entirely offline. Drag a crop box over the preview to remove running heads and page numbers, for one page, all pages, or a selection. Rotate, reorder, remove, extract, split into files, or append other PDFs.",
+          "Edits apply to a working copy. Your original stays untouched until you save.",
+        ],
+        image: cropEditor,
+        alt: "The visual crop editor over a scanned Burmese page.",
+        commands: [
+          "lexo pdf crop book.pdf --top 8 --bottom 8 -o trimmed.pdf",
+          "lexo pdf merge a.pdf b.pdf -o book.pdf",
+        ],
+        link: ["docs/pdf-tools/", "PDF tools"],
+      },
+      {
+        id: "spreads",
+        title: "Two-page spread splitting",
+        body: [
+          "Scans of open books often hold two pages per image. Drag a line onto the gutter and split every spread into left and right pages, in reading order. Rotation and existing crops are respected.",
+        ],
+        image: splitSpread,
+        alt: "A two-up spread with LEXO's draggable split line.",
+        commands: ["lexo pdf split-spread scans.pdf -o pages.pdf"],
+      },
+      {
+        id: "proofreading",
+        title: "Side-by-side proofreading",
+        body: [
+          "Each page sits beside its editable text. Zoom and pan the page image to check a difficult line, fix the text in place, and move on. Page thumbnails show which pages are done, pending, or failed.",
+          "Noto Sans Myanmar is bundled, so Burmese renders correctly while you proofread, whatever fonts your system has.",
+        ],
+        image: proofread,
+        alt: "LEXO proofreading: a doubled vowel sign selected in the text pane, beside its page.",
+      },
+      {
+        id: "unicode",
+        title: "Myanmar Unicode handling",
+        body: [
+          "All text is normalized to Unicode NFC, so the same word is always stored the same way. Zero-width spaces, which Burmese uses to mark word and line breaks, are kept; stray control characters are removed.",
+        ],
+      },
+      {
+        id: "exports",
+        title: "TXT, Markdown, and JSONL",
+        body: [
+          "Plain text for reading and editing. Markdown with YAML frontmatter and a heading per page for publishing and EPUB work. JSONL with one record per page, carrying the page number and how its text was obtained, for NLP and LLM datasets.",
+        ],
+        image: exportShot,
+        alt: "LEXO's Run panel set to export Markdown.",
+        link: ["docs/export-formats/", "Export formats"],
+      },
+      {
+        id: "gui-cli",
+        title: "A desktop app and a CLI, one engine",
+        body: [
+          "The PySide6 desktop app and the lexo command call the same core, so behaviour matches. Prove a workflow by hand, then script it.",
+        ],
+        image: welcome,
+        alt: "LEXO welcome screen.",
+        commands: ["lexo gui", "lexo --help"],
+        link: ["docs/cli/", "CLI reference"],
+      },
+    ],
+  },
+  my: {
+    title: "လုပ်ဆောင်ချက်များ - မြန်မာ OCR၊ PDF ကိရိယာ နှင့် စစ်ဆေးခြင်း",
+    h1: "LEXO ၏ လုပ်ဆောင်ချက်များ",
+    description:
+      "LEXO ၏ လုပ်ဆောင်ချက်အားလုံး - မြန်မာစာ ဦးစားပေး Google Docs OCR၊ Text layer မှ ထုတ်ယူခြင်း၊ Batch PDF OCR၊ ဖြတ်တောက်၊ ခွဲ၊ လှည့်၊ ပေါင်း၊ စာမျက်နှာနှစ်ခုတွဲ ခွဲခြင်း၊ ယှဉ်တွဲ စစ်ဆေးခြင်းနှင့် TXT၊ Markdown၊ JSONL Export။",
+    lede: "အောက်ပါ လုပ်ဆောင်ချက်အားလုံးကို လက်ရှိဗားရှင်းမှာ အသုံးပြုနိုင်ပါတယ်။ ပုံတွေနဲ့ ဗီဒီယိုတွေမှာလည်း LEXO ကို တိုက်ရိုက်အသုံးပြုပြီး ပြထားပါတယ်။ နောင်ထည့်သွင်းမယ့် လုပ်ဆောင်ချက်တွေကို ဒီနေရာမှာ မဖော်ပြထားပါဘူး။",
+    features: [
+      {
+        id: "burmese-ocr",
+        title: "မြန်မာစာ ဦးစားပေး OCR",
+        body: [
+          "OCR ဘာသာစကားကို မြန်မာစာအဖြစ် မူလကတည်းက သတ်မှတ်ထားပါတယ်။ ထပ်ရွေးဖို့၊ ဆက်တင်ပြင်ဖို့ ဒါမှမဟုတ် language pack ထည့်ဖို့ မလိုပါဘူး။",
+          "LEXO က မြန်မာစာကို ကောင်းစွာဖတ်နိုင်တဲ့ Google Docs OCR ကို သုံးပါတယ်။ စကင်ဖတ်ထားတဲ့ စာအုပ်တွေ၊ PDF ဟောင်းတွေနဲ့ ဖောင့်ဟောင်းသုံးထားတဲ့ မြန်မာစာရွက်စာတမ်းတွေကို အဆင့်ဆင့် ကိုင်တွယ်နိုင်အောင် စီစဉ်ထားပါတယ်။",
+        ],
+        image: ocrResult,
+        alt: "LEXO တွင် စကင်ဖတ်ထားတဲ့ မြန်မာ စာမျက်နှာနှင့် Google Docs OCR စာသား။",
+        link: ["docs/ocr-workflows/", "OCR အသုံးပြုနည်းများ"],
+      },
+      {
+        id: "google-docs-ocr",
+        title: "မိမိအကောင့်ဖြင့် Google Docs OCR",
+        body: [
+          "အခကြေးငွေပေးရတဲ့ OCR API သုံးဖို့၊ စာမျက်နှာအလိုက် ငွေပေးဖို့၊ စက်ထဲမှာသုံးမယ့် model အကြီးတွေ ဒေါင်းလုဒ်ဆွဲဖို့ မလိုပါဘူး။ LEXO က စာမျက်နှာပုံတစ်ခုချင်းကို မိမိ Google Drive သို့ ပို့ပြီး Google Docs OCR ဖြင့် ဖတ်ပါတယ်။ စာသားကို ပြန်ယူပြီးနောက် ယာယီဖိုင်ကို ဖျက်ပါတယ်။",
+          "Google Cloud ကို တစ်ကြိမ် ပြင်ဆင်ထားဖို့ လိုပါတယ်။ drive.file ခွင့်ပြုချက်ကိုသာ သုံးတာကြောင့် LEXO ကိုယ်တိုင် ဖန်တီးထားတဲ့ ဖိုင်တွေကိုသာ အသုံးပြုနိုင်ပါတယ်။",
+        ],
+        image: ocrRunning,
+        alt: "Google Docs OCR လုပ်ဆောင်မှု အခြေအနေကို စာမျက်နှာအလိုက် ပြနေတဲ့ LEXO။",
+        link: ["docs/google-cloud-setup/", "Google Cloud Setup"],
+      },
+      {
+        id: "text-layer",
+        title: "PDF မှ စာသား ထုတ်ယူခြင်း",
+        body: [
+          "စာစီစာရိုက် ဆော့ဖ်ဝဲကနေ ထုတ်ထားတဲ့ PDF တွေမှာ Text layer ပါပြီးသား ဖြစ်ပါတယ်။ LEXO က အဲဒီစာသားကို မူရင်းအတိုင်း ချက်ချင်း ကူးယူပေးပါတယ်။ အင်တာနက်နဲ့ အကောင့် မလိုပါဘူး။",
+          "CLI မှ lexo ocr ကို သုံးရင် စာမျက်နှာတစ်ခုချင်းကို စစ်ဆေးပေးပါတယ်။ အသုံးပြုနိုင်တဲ့ Text layer ပါရင် တိုက်ရိုက်ထုတ်ယူပြီး စကင်စာမျက်နှာတွေကိုသာ OCR လုပ်ပါတယ်။ ဖောင့်ဟောင်းရဲ့ glyph တွေကြောင့် Text layer ကို သုံးမရကြောင်း စစ်တွေ့ရင်လည်း OCR လုပ်ပေးပါတယ်။",
+        ],
+        image: textLayer,
+        alt: "LEXO တွင် စာသားပါ မြန်မာ PDF ၏ Text layer မှ ထုတ်ယူထားတဲ့ စာသား။",
+        commands: ["lexo extract report.pdf -o report.txt"],
+      },
+      {
+        id: "scanned-ocr",
+        title: "စကင် PDF နှင့် ပုံများ",
+        body: [
+          "စကင် PDF၊ ပုံတစ်ပုံ သို့မဟုတ် ပုံအစုကို စာရွက်စာတမ်း တစ်ခုအဖြစ် ဖွင့်နိုင်ပါတယ်။ PNG၊ JPEG၊ TIFF နှင့် BMP အားလုံး ရပါတယ်။",
+          "ရလဒ်တွေကို စာမျက်နှာအလိုက် ပြပေးပါတယ်။ ယာယီချို့ယွင်းမှုများကို အလိုအလျောက် ထပ်မံကြိုးစားပြီး Retry Failed Pages ဖြင့် မအောင်မြင်သေးတာတွေကိုသာ ပြန်လုပ်နိုင်တဲ့အတွက် စာအုပ်ရှည်ကြီးကို အစကနေ ပြန်စရန် မလိုပါဘူး။",
+        ],
+        commands: ["lexo ocr scan.pdf --lang my -o scan.txt"],
+      },
+      {
+        id: "legacy-fonts",
+        title: "ဖောင့်ဟောင်း PDF ဖြေရှင်းနည်း",
+        body: [
+          "Win Innwa သို့မဟုတ် Win Myanmar ဖြင့် ရိုက်ထားတဲ့ မြန်မာစာကို ASCII စာလုံးများအဖြစ် သိမ်းထားပါတယ်။ ထုတ်ယူရင် အဓိပ္ပာယ်မဲ့ လက်တင်စာလုံးများ ရပါမယ်။ Google Docs OCR ဖြင့် လုပ်လိုက်ရင် LEXO က စာမျက်နှာကို ပုံအဖြစ် ဖတ်ပြီး မြန်မာ Unicode စာသားကို ပြန်ပေးပါတယ်။",
+        ],
+        image: legacyFrame,
+        alt: "LEXO Text pane မှာ Win Innwa မြန်မာ PDF မှ ထုတ်ယူထားတဲ့ ASCII စာလုံးများ။",
+        link: ["blog/win-innwa-pdf-to-unicode/", "ဖောင့်ဟောင်းများ အကြောင်း"],
+      },
+      {
+        id: "batch",
+        title: "Batch PDF OCR",
+        body: [
+          "Folder ထဲက PDF အားလုံး သို့မဟုတ် ရွေးထားတဲ့ PDF တွေကို OCR လုပ်ပြီး တစ်ဖိုင်လျှင် UTF-8 .txt တစ်ခု ထုတ်ပေးပါတယ်။ ရလဒ်ဖိုင် ရှိပြီးသားဆိုရင် ကျော်ပေးတာကြောင့် အလုပ်ရပ်သွားရင် ပြန်စပြီး ကျန်တဲ့ဖိုင်တွေကို ဆက်လုပ်နိုင်ပါတယ်။",
+          "အက်ပ်ရဲ့ အဖွင့်မျက်နှာပြင်မှာ Batch OCR PDFs ကို ရွေးပါ သို့မဟုတ် Ctrl+Alt+O ကို နှိပ်ပါ။ CLI မှာ lexo ocr-batch ကို သုံးနိုင်ပါတယ်။",
+        ],
+        image: batchDialog,
+        alt: "LEXO ရှိ Batch OCR PDFs Dialog။",
+        commands: ["lexo ocr-batch ./pdfs --out-dir ./txt"],
+        link: ["docs/batch-ocr/", "Batch OCR လမ်းညွှန်"],
+      },
+      {
+        id: "pdf-tools",
+        title: "ဖြတ်တောက်၊ ခွဲ၊ လှည့်၊ ပေါင်း",
+        body: [
+          "OCR မလုပ်မီ စာမျက်နှာများကို အင်တာနက်မလိုဘဲ ပြင်ဆင်ပါ။ ခေါင်းစီးနှင့် စာမျက်နှာနံပါတ်များ ဖယ်ရန် Preview ပေါ်မှာ Crop box ဆွဲပါ။ ပြီးရင် လက်ရှိစာမျက်နှာ၊ စာမျက်နှာအားလုံး သို့မဟုတ် ရွေးထားတဲ့ စာမျက်နှာတွေအတွက် Apply crop လုပ်ပါ။ လှည့်ခြင်း၊ နေရာပြောင်းခြင်း၊ ဖယ်ရှားခြင်း၊ ထုတ်ယူခြင်း၊ ဖိုင်ခွဲခြင်းနှင့် အခြား PDF များ ပေါင်းထည့်ခြင်းတို့ ပြုလုပ်နိုင်ပါတယ်။",
+          "ပြင်ဆင်ဖို့ ဖန်တီးထားတဲ့ မိတ္တူမှာပဲ အပြောင်းအလဲတွေကို လုပ်ဆောင်ပါတယ်။ Save ဖြင့် မသိမ်းမချင်း မူရင်းဖိုင်ကို မပြောင်းလဲပါဘူး။",
+        ],
+        image: cropEditor,
+        alt: "စကင်ဖတ်ထားတဲ့ မြန်မာ စာမျက်နှာပေါ်ရှိ မျက်မြင် ဖြတ်တောက်ကိရိယာ။",
+        commands: [
+          "lexo pdf crop book.pdf --top 8 --bottom 8 -o trimmed.pdf",
+          "lexo pdf merge a.pdf b.pdf -o book.pdf",
+        ],
+        link: ["docs/pdf-tools/", "PDF ကိရိယာများ"],
+      },
+      {
+        id: "spreads",
+        title: "စာမျက်နှာနှစ်ခုတွဲ ပုံ ခွဲခြင်း",
+        body: [
+          "စာအုပ်ကို ဖွင့်လျက် စကင်ဖတ်ထားရင် ပုံတစ်ပုံမှာ စာမျက်နှာနှစ်ခု ပါတတ်ပါတယ်။ ခွဲမျဉ်းကို စာအုပ်အလယ်ကြောင်းပေါ် ဆွဲရွှေ့ပြီး ဘယ်၊ ညာ စာမျက်နှာအဖြစ် ခွဲနိုင်ပါတယ်။ ဘယ်စာမျက်နှာကို အရင်ထားပြီး လှည့်ထားတဲ့အနေအထားနဲ့ Crop box ကိုလည်း ထည့်သွင်းတွက်ချက်ပေးပါတယ်။",
+        ],
+        image: splitSpread,
+        alt: "LEXO ၏ ဆွဲရွှေ့နိုင်သော ခွဲမျဉ်း ပါတဲ့ စာမျက်နှာနှစ်ခုတွဲ ပုံ။",
+        commands: ["lexo pdf split-spread scans.pdf -o pages.pdf"],
+      },
+      {
+        id: "proofreading",
+        title: "ယှဉ်တွဲ စစ်ဆေးခြင်း",
+        body: [
+          "စာမျက်နှာပုံနဲ့ ပြင်ဆင်နိုင်တဲ့ စာသားကို ယှဉ်တွဲပြထားပါတယ်။ ဖတ်ရခက်တဲ့နေရာကို ချဲ့ကြည့်ပြီး စာသားကို တိုက်ရိုက် ပြင်နိုင်ပါတယ်။ စာမျက်နှာပုံငယ်တွေမှာ ပြီးဆုံး၊ စောင့်ဆိုင်းဆဲနဲ့ မအောင်မြင်တဲ့ အခြေအနေတွေကို ပြပေးပါတယ်။",
+          "Noto Sans Myanmar ဖောင့် ပါဝင်ပြီးသားဖြစ်လို့ စက်မှာ မြန်မာဖောင့် ရှိမရှိကို စိုးရိမ်စရာမလိုဘဲ စာသားကို မှန်ကန်စွာ ဖတ်ရှုစစ်ဆေးနိုင်ပါတယ်။",
+        ],
+        image: proofread,
+        alt: "မူရင်းစာမျက်နှာနှင့် ယှဉ်တွဲထားတဲ့ LEXO Text pane မှာ ထပ်နေတဲ့ သရအမှတ်ကို ရွေးထားပုံ။",
+      },
+      {
+        id: "unicode",
+        title: "မြန်မာ Unicode ကိုင်တွယ်ပုံ",
+        body: [
+          "စာသားအားလုံးကို Unicode NFC စံပုံစံနဲ့ ညီအောင် ပြင်ဆင်ပေးတာကြောင့် အမြင်အားဖြင့် တူညီတဲ့ စာသားတွေကို တစ်သမတ်တည်း သိမ်းဆည်းနိုင်ပါတယ်။ မြန်မာစာမှာ စကားလုံးနဲ့ စာကြောင်းခွဲဖို့ သုံးတဲ့ zero-width space တွေကို ထိန်းထားပြီး မလိုအပ်တဲ့ control character တွေကို ဖယ်ရှားပါတယ်။",
+        ],
+      },
+      {
+        id: "exports",
+        title: "TXT၊ Markdown နှင့် JSONL",
+        body: [
+          "ဖတ်ရှုပြင်ဆင်ဖို့ Plain text ကို ရွေးနိုင်ပါတယ်။ ထုတ်ဝေရေးနဲ့ EPUB အလုပ်တွေအတွက် YAML frontmatter နဲ့ စာမျက်နှာခေါင်းစဉ်တွေပါတဲ့ Markdown ကို သုံးနိုင်ပါတယ်။ NLP နဲ့ LLM dataset တွေအတွက် JSONL က တစ်မျက်နှာလျှင် မှတ်တမ်းတစ်ခု ထုတ်ပေးပြီး စာမျက်နှာနံပါတ်နဲ့ စာသားရယူတဲ့ နည်းလမ်းကိုပါ ထည့်ပေးပါတယ်။",
+        ],
+        image: exportShot,
+        alt: "Markdown Export ရွေးထားတဲ့ LEXO Run Panel။",
+        link: ["docs/export-formats/", "သိမ်းဆည်းနိုင်တဲ့ File format တွေ"],
+      },
+      {
+        id: "gui-cli",
+        title: "အက်ပ်နှင့် CLI၊ တူညီတဲ့စနစ်",
+        body: [
+          "PySide6 ဖြင့် တည်ဆောက်ထားတဲ့ Desktop app နဲ့ lexo command က အခြေခံစနစ်တစ်ခုတည်းကို သုံးထားတာကြောင့် ရလဒ်တူပါတယ်။ အက်ပ်မှာ အရင်စမ်းပြီး အဲဒီလုပ်ငန်းစဉ်ကို script ရေးကာ ထပ်မံလုပ်ဆောင်နိုင်ပါတယ်။",
+        ],
+        image: welcome,
+        alt: "LEXO အဖွင့်မျက်နှာပြင်။",
+        commands: ["lexo gui", "lexo --help"],
+        link: ["docs/cli/", "CLI အညွှန်း"],
+      },
+    ],
+  },
+};
+
+const copy = content[lang];
+const crumbs = [{ label: t("breadcrumb.home"), href: href(lang) }, { label: t("nav.features") }];
+const url = new URL(href(lang, "features/"), site).href;
+---
+
+<Base
+  lang={lang}
+  title={copy.title}
+  description={copy.description}
+  section="features"
+  path="features/"
+  ogImage={`/og/${lang}/features.png`}
+  jsonLd={[
+    softwareApplication(lang, url, copy.description),
+    breadcrumbList([
+      { name: t("breadcrumb.home"), url: new URL(href(lang), site).href },
+      { name: t("nav.features"), url },
+    ]),
+  ]}
+>
+  <div class="wrap pt-10 lg:pt-14">
+    <Breadcrumbs items={crumbs} label={t("breadcrumb.home")} />
+    <div class="intro mt-6">
+      <h1 class="display">{copy.h1}</h1>
+      <p class="lede">{copy.lede}</p>
+    </div>
+
+    <nav class="index mt-14" aria-label={t("nav.features")}>
+      <ol>
+        {
+          copy.features.map((f) => (
+            <li>
+              <a href={`#${f.id}`}>{f.title}</a>
+            </li>
+          ))
+        }
+      </ol>
+    </nav>
+  </div>
+
+  <div class="wrap pb-20">
+    {
+      copy.features.map((f) => (
+        <section id={f.id} class:list={["feature", !f.image && "no-image"]} aria-labelledby={`${f.id}-h`}>
+          <div class="feature-text">
+            <h2 id={`${f.id}-h`} class="h2 feature-title">
+              {f.title}
+            </h2>
+            {f.body.map((p) => (
+              <p class="mt-4 text-ink-2">{p}</p>
+            ))}
+            {f.commands && (
+              <div class="mt-6 grid gap-2">
+                {f.commands.map((c) => (
+                  <Command lang={lang} command={c} />
+                ))}
+              </div>
+            )}
+            {f.link && (
+              <a class="link mt-6 inline-flex items-center gap-2 font-medium" href={href(lang, f.link[0])}>
+                {f.link[1]}
+                <Icon name="arrow" size={18} />
+              </a>
+            )}
+          </div>
+          {f.image && f.alt && (
+            <Shot src={f.image} alt={f.alt} sizes="(min-width: 64rem) 56vw, 94vw" class="feature-shot" />
+          )}
+        </section>
+      ))
+    }
+  </div>
+</Base>
+
+<style>
+  .intro {
+    display: grid;
+    gap: 1.5rem;
+  }
+
+  @media (min-width: 64rem) {
+    .intro {
+      grid-template-columns: 1.1fr 1fr;
+      align-items: end;
+      gap: 4rem;
+    }
+  }
+
+  .index ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    columns: 1;
+    column-gap: 2.5rem;
+    border-top: 1.5px solid var(--ink);
+  }
+
+  @media (min-width: 40rem) {
+    .index ol {
+      columns: 2;
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .index ol {
+      columns: 3;
+    }
+  }
+
+  .index li {
+    break-inside: avoid;
+  }
+
+  .index a {
+    display: flex;
+    gap: 0.9rem;
+    padding: 0.7rem 0;
+    border-bottom: 1px solid var(--rule);
+    color: var(--ink);
+    text-decoration: none;
+    font-weight: 560;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .index a:hover {
+      color: var(--scan-ink);
+    }
+  }
+
+  .feature {
+    display: grid;
+    gap: 2rem;
+    padding-block: clamp(3.5rem, 7vw, 6rem);
+    border-bottom: 1px solid var(--rule);
+    scroll-margin-top: 6rem;
+  }
+
+  .feature-text {
+    max-width: 34rem;
+  }
+
+  .feature-title {
+    font-size: clamp(1.6rem, 1.2rem + 1.4vw, 2.4rem);
+  }
+
+  @media (min-width: 64rem) {
+    .feature {
+      grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.4fr);
+      gap: 4rem;
+      align-items: start;
+    }
+
+    .feature:nth-of-type(even) :global(.feature-shot) {
+      order: -1;
+    }
+
+    .feature-text {
+      position: sticky;
+      top: 7.5rem;
+    }
+
+    .feature.no-image {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .feature.no-image .feature-text {
+      max-width: 44rem;
+      position: static;
+    }
+  }
+</style>

@@ -1,0 +1,70 @@
+name: Website
+
+# Lints, type-checks and builds the Astro site in site/. Hosting is handled by
+# Cloudflare's Git integration, not this workflow. Independent of the Python CI
+# and release workflows.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "site/**"
+      - "src/lexo/__init__.py"
+      - "CHANGELOG.md"
+      - ".github/workflows/site.yml"
+  pull_request:
+    paths:
+      - "site/**"
+      - "src/lexo/__init__.py"
+      - "CHANGELOG.md"
+      - ".github/workflows/site.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: site-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: site
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4.3.0
+        with:
+          package_json_file: site/package.json
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version-file: site/.node-version
+          cache: pnpm
+          cache-dependency-path: site/pnpm-lock.yaml
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      # Astro keeps optimized images here; reusing it saves minutes of AVIF encoding.
+      - name: Cache optimized images
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: site/node_modules/.astro
+          key: astro-assets-${{ hashFiles('site/src/assets/**') }}
+          restore-keys: astro-assets-
+
+      - name: Lint and format
+        run: pnpm exec biome ci .
+
+      - name: Type check
+        run: pnpm exec astro check
+
+      - name: Build
+        run: pnpm build
+        env:
+          SITE_URL: ${{ vars.SITE_URL || 'https://lexo.philix.dev' }}

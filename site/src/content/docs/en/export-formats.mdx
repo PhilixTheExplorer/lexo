@@ -1,0 +1,76 @@
+---
+title: "Export formats: TXT, Markdown, and JSONL"
+navTitle: Export formats
+description: What LEXO's plain text, Markdown with YAML frontmatter, and JSONL exports look like, and which to choose for reading, publishing, or NLP datasets.
+lang: en
+group: reference
+order: 2
+updated: 2026-10-22
+---
+
+LEXO exports a document in three formats. All are UTF-8, and Burmese stays readable as-is: nothing is escaped.
+
+| Format | Extension | Best for |
+|---|---|---|
+| Plain text | `.txt` | Reading, editing, pasting into other tools |
+| Markdown | `.md` | Publishing, EPUB pipelines, per-page review |
+| JSONL | `.jsonl` | NLP and LLM datasets, scripting |
+
+In the desktop app, choose under **Export as** on the Run tab. In the CLI, use `--format text|markdown|jsonl` with `lexo extract` or `lexo ocr`. Batch OCR always writes plain text.
+
+## Plain text
+
+The default. Page texts joined by a blank line, with empty pages left out.
+
+```text
+ပထမ စာမျက်နှာ၏ စာသား…
+
+ဒုတိယ စာမျက်နှာ၏ စာသား…
+```
+
+## Markdown
+
+A YAML frontmatter block followed by one section per page:
+
+```markdown
+---
+source: "scan.pdf"
+doc_id: "3f9a…"
+page_count: 2
+extracted_at: "2026-10-22T08:00:00+00:00"
+---
+
+## Page 1
+
+ပထမ စာမျက်နှာ၏ စာသား…
+
+## Page 2
+
+(OCR failed on this page: …)
+```
+
+Every page gets a heading, so you can see exactly where each page's text came from. A page with no text says so, and a failed page carries its error, which makes gaps easy to find before publishing.
+
+## JSONL
+
+One JSON object per line, one line per page:
+
+```json
+{"doc_id": "…", "source": "scan.pdf", "page": 1, "kind": "scanned", "text": "ပထမ စာမျက်နှာ၏ စာသား…"}
+{"doc_id": "…", "source": "scan.pdf", "page": 2, "kind": "digital", "text": "…"}
+```
+
+| Field | Meaning |
+|---|---|
+| `doc_id` | SHA-256 of the source file, so the same file always gets the same ID |
+| `source` | Source file name |
+| `page` | Page number, from 1 |
+| `kind` | `digital` (text layer), `scanned` (OCR), or `failed` |
+| `text` | The page text, Unicode NFC |
+| `error` | Present only when the page failed |
+
+JSONL streams well into data tools: one page per record means you can filter by `kind`, drop failed pages, or deduplicate by `doc_id` without parsing the whole file.
+
+## Text normalization in every format
+
+All formats carry the same cleaned text: Unicode NFC, zero-width spaces preserved, control characters removed. See [OCR workflows](/en/docs/ocr-workflows/#what-lexo-does-to-the-text).

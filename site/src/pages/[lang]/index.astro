@@ -1,0 +1,1095 @@
+---
+import { Picture } from "astro:assets";
+import exportSample from "~/assets/samples/export-page-1.txt?raw";
+import batchDialog from "~/assets/screens/app-batch-dialog.webp";
+import cropEditor from "~/assets/screens/app-crop-editor.webp";
+import exportDone from "~/assets/screens/app-export-done.webp";
+import ocrRunning from "~/assets/screens/app-ocr-running.webp";
+import proofread from "~/assets/screens/app-proofread.webp";
+import welcome from "~/assets/screens/app-welcome.webp";
+import legacyFrame from "~/assets/screens/legacy-font-extract.webp";
+import Command from "~/components/Command.astro";
+import Icon from "~/components/Icon.astro";
+import InstallTicket from "~/components/InstallTicket.astro";
+import PromoVideo from "~/components/PromoVideo.astro";
+import ScanCompare from "~/components/ScanCompare.astro";
+import Shot from "~/components/Shot.astro";
+import Walkthrough from "~/components/Walkthrough.astro";
+import Workflow from "~/components/Workflow.astro";
+import { LINKS, PYTHON_REQUIRES, VERSION } from "~/data/site";
+import type { Lang } from "~/i18n/ui";
+import { href, sectionHref, staticLangPaths, useT } from "~/i18n/utils";
+import { videoCopy } from "~/i18n/videos";
+import Base from "~/layouts/Base.astro";
+import { softwareApplication, website } from "~/lib/schema";
+
+export const getStaticPaths = staticLangPaths;
+
+const lang = Astro.params.lang as Lang;
+const t = useT(lang);
+const site = Astro.site ?? new URL("https://lexo.philix.dev");
+const url = new URL(href(lang), site).href;
+
+const copy = {
+    en: {
+        title: "LEXO — Burmese OCR for scanned PDFs and images",
+        description:
+            "Free, open-source desktop app that turns scanned Burmese PDFs and images into clean Myanmar Unicode text. Crop, OCR, proofread, and export.",
+        headline: ["Scanned Burmese in.", "Unicode text out."],
+        echo: "စကင်ဖတ်ထားတဲ့ မြန်မာစာမှ Unicode စာသားသို့",
+        echoLang: "my",
+        lede: "LEXO is a free desktop app that turns PDFs and images into clean, editable text, with Burmese as its first language. Crop and split the pages, run Google Docs OCR through your own Google account, proofread each page beside its image, then export.",
+        watch: "Watch it work",
+        facts: [
+            "Free and open source",
+            "Windows · macOS · Linux",
+            `Python ${PYTHON_REQUIRES}+`,
+        ],
+        promoTitle: "Scan to text in 47 seconds",
+        promoLede: "A short animated overview. Music only, no narration.",
+        promoPlay: "Play the overview",
+        ledgerTitle: "What stays on your computer, and what doesn't",
+        ledgerLede:
+            "LEXO is local-first, not offline. Everything except Google Docs OCR runs on your machine. When you choose OCR, this is exactly what happens.",
+        localTitle: "On your computer",
+        localItems: [
+            "Opening PDFs, images, and image sets",
+            "Cropping, splitting, rotating, merging, and reordering pages",
+            "Reading the embedded text layer of digital PDFs",
+            "Proofreading and editing the text",
+            "Exporting TXT, Markdown, and JSONL",
+        ],
+        cloudTitle: "Through your own Google account",
+        cloudBadge: "Only when you pick Google Docs OCR",
+        cloudItems: [
+            "Each page is rendered to an image and uploaded to your Google Drive",
+            "Google Docs OCR reads it; LEXO downloads the text",
+            "LEXO deletes the temporary Drive file right after",
+            "Access is limited to the drive.file scope: only files LEXO itself created",
+            "Your sign-in token lives in the OS keychain; lexo logout removes it",
+        ],
+        setupNote:
+            "OCR needs a one-time Google Cloud setup: a project, the Drive API, an OAuth consent screen, and a credentials.json file. It's six steps, and the first walkthrough video shows all of them.",
+        setupLink: "Read the setup guide",
+        flowTitle: "One document, start to finish",
+        flowLede:
+            "LEXO works like an editor, not an upload box. Your original file is untouched until you save.",
+        steps: [
+            {
+                title: "Open",
+                body: "Open a PDF, a single image, or a set of images. Digital and scanned pages can live in the same document.",
+                alt: "LEXO welcome screen with Import PDF or Image, Select Image Set, and Batch OCR PDFs buttons.",
+            },
+            {
+                title: "Tune the pages",
+                body: "Drag a crop box over the page to drop running heads and page numbers. Drag a line to split two-up spreads. Rotate, reorder, or delete pages for this page, all pages, or a selection.",
+                alt: "LEXO crop editor: a blue crop box drawn over a scanned Burmese page, with crop margins in the Tune panel.",
+            },
+            {
+                title: "Run",
+                body: "Text layer copies the text a digital PDF already has: instant and lossless. Google Docs OCR reads scans. Pages report back one by one; transient failures retry, and Retry Failed Pages re-runs only what failed.",
+                alt: "LEXO mid-run: Google Docs OCR at 25% with page thumbnails showing done and pending badges.",
+            },
+            {
+                title: "Proofread",
+                body: "Every page sits beside its editable text, so you fix what the text layer or OCR got wrong right where you see it. The Myanmar font is bundled, so Burmese renders correctly even on machines without one.",
+                alt: "LEXO proofreading: a doubled vowel sign selected in the text pane, beside the page it came from.",
+            },
+            {
+                title: "Export",
+                body: "Plain text, Markdown with YAML frontmatter, or JSONL with one record per page for NLP and LLM work.",
+                alt: "LEXO after exporting Markdown, showing the Exported lexo-sample-digital.md confirmation.",
+            },
+        ],
+        myTitle: "Made for Myanmar script",
+        myLede: "Many OCR tools are built around Latin script and treat Burmese as an afterthought. LEXO starts from Burmese.",
+        myPoints: [
+            {
+                term: "Burmese by default",
+                body: "The OCR language hint is my unless you say otherwise. Pass --lang, or LEXO_OCR_LANGUAGE, for another language.",
+            },
+            {
+                term: "Unicode that stays correct",
+                body: "Text is normalized to NFC. Zero-width spaces, which mark Burmese word and line breaks, are kept; stray control characters are dropped.",
+            },
+            {
+                term: "Legacy text layers, recognized",
+                body: "Layers made of Private Use Area glyphs are detected as unusable and sent to OCR. ASCII-mapped fonts like Win Innwa come out as Latin letters: switch to Google Docs OCR and LEXO reads the page as an image instead.",
+            },
+        ],
+        specimenLabel: "How မြန်မာ is stored in Unicode",
+        legacyCaption:
+            "Text-layer extraction on a Win Innwa PDF returns the ASCII the font hides behind. Frame from walkthrough 3.",
+        batchTitle: "A folder of PDFs, one text file each",
+        batchBody:
+            "Point LEXO at a folder or a handful of PDFs. Each source becomes a UTF-8 .txt with the same name. Files that already exist are skipped, so a stopped batch picks up where it left off.",
+        batchFacts: [
+            "Resumable: existing outputs are skipped unless you pass --overwrite",
+            "Every page is OCR'd by default; --no-force-ocr keeps usable embedded text",
+            "In the app: Batch OCR PDFs on the welcome screen, or Ctrl+Alt+O",
+        ],
+        batchAlt:
+            "Batch OCR PDFs dialog: 3 PDF files selected, an output folder, OCR language my, and Start OCR.",
+        toolsTitle: "PDF tools that never need a sign-in",
+        toolsLede:
+            "The same engine runs from the command line. None of these touch the network.",
+        tools: [
+            [
+                'lexo pdf extract book.pdf --pages "1-3,7,10-" -o subset.pdf',
+                "Pull out a page range",
+            ],
+            ["lexo pdf split book.pdf --every 10", "Split into ten-page files"],
+            [
+                "lexo pdf crop book.pdf --top 8 --bottom 8 -o trimmed.pdf",
+                "Trim 8% off top and bottom",
+            ],
+            [
+                "lexo pdf split-spread scans.pdf -o pages.pdf",
+                "Split two-up spreads in half",
+            ],
+            ["lexo pdf rotate book.pdf -d 90 -o rotated.pdf", "Rotate pages"],
+            ["lexo pdf merge a.pdf b.pdf -o book.pdf", "Merge files in order"],
+        ],
+        toolsMore: "Full CLI reference",
+        videosTitle: "See the whole thing in three minutes",
+        videosLede:
+            "Three short, silent walkthroughs with on-screen captions, recorded in the real app.",
+        useTitle: "Who it's for",
+        uses: [
+            ["Researchers and archives", "use-cases/#research"],
+            ["Publishers and EPUB production", "use-cases/#publishing"],
+            ["Burmese NLP datasets", "use-cases/#datasets"],
+            ["Legacy-font documents", "use-cases/#legacy-fonts"],
+            ["Students and teachers", "use-cases/#education"],
+        ],
+        openTitle: "Free, open source, and yours to run",
+        openBody:
+            "LEXO is licensed under the AGPL-3.0. There is no account, no subscription, and no per-page fee. Google Docs OCR is free through your own Google account. The desktop app and the CLI drive the same engine, so a workflow you prove in the GUI can be scripted.",
+        openRepo: "Source on GitHub",
+        openContrib: "How to contribute",
+        closeTitle: "Install LEXO",
+        closeBody:
+            "One Python package carries the CLI and the desktop app. No separate system dependencies.",
+    },
+    my: {
+        title: "LEXO — စကင်ဖတ်ထားတဲ့ PDF နှင့် ပုံများအတွက် မြန်မာ OCR",
+        description:
+            "စကင်ဖတ်ထားတဲ့ မြန်မာ PDF နဲ့ ပုံတွေကို ပြင်ဆင်နိုင်တဲ့ Unicode စာသားအဖြစ် ပြောင်းပေးတဲ့ အခမဲ့၊ Open Source Desktop app။ စာမျက်နှာပြင်ဆင်၊ OCR လုပ်၊ စစ်ဆေးပြီး ဖိုင်အဖြစ် သိမ်းနိုင်ပါတယ်။",
+        headline: ["စကင်ဖတ်ထားတဲ့", "မြန်မာစာမှ", "Unicode စာသားသို့"],
+        echo: "Scanned Burmese in. Unicode text out.",
+        echoLang: "en",
+        lede: "LEXO က PDF နဲ့ ပုံတွေကို ပြင်ဆင်နိုင်တဲ့ စာသားအဖြစ် ပြောင်းပေးတဲ့ အခမဲ့ Desktop app ပါ။ မြန်မာစာကို ဦးစားပေးထားပါတယ်။ စာမျက်နှာတွေကို ဖြတ်တောက်၊ ခွဲပြီး မိမိ Google အကောင့်နဲ့ Google Docs OCR သုံးပါ။ ရလာတဲ့စာသားကို မူရင်းပုံနဲ့ ယှဉ်စစ်ပြီး ဖိုင်အဖြစ် သိမ်းနိုင်ပါတယ်။",
+        watch: "ဗီဒီယိုဖြင့် ကြည့်ရန်",
+        facts: [
+            "အခမဲ့၊ Open Source",
+            "Windows · macOS · Linux",
+            `Python ${PYTHON_REQUIRES}+`,
+        ],
+        promoTitle: "စကင်မှ စာသားသို့ — ၄၇ စက္ကန့် မိတ်ဆက်ဗီဒီယို",
+        promoLede:
+            "လုပ်ဆောင်ပုံကို အန်နီမေးရှင်းဖြင့် အကျဉ်းချုပ် ဖော်ပြထားပါတယ်။ နောက်ခံတေးဂီတသာ ပါဝင်ပြီး ရှင်းလင်းပြောကြားသံ မပါပါဘူး။",
+        promoPlay: "အကျဉ်းချုပ်ကို ကြည့်ရန်",
+        ledgerTitle: "ကွန်ပျူတာမှာ ဘာလုပ်ပြီး Google သို့ ဘာပို့သလဲ",
+        ledgerLede:
+            "LEXO ရဲ့ လုပ်ဆောင်ချက်အများစုကို မိမိကွန်ပျူတာမှာပဲ လုပ်ဆောင်ပါတယ်။ Google Docs OCR သုံးတဲ့အခါ အင်တာနက်လိုအပ်ပြီး စာမျက်နှာပုံတွေကို Google သို့ ပို့ပါတယ်။ လုပ်ဆောင်ပုံကို အောက်မှာ ဖော်ပြထားပါတယ်။",
+        localTitle: "မိမိကွန်ပျူတာမှာ",
+        localItems: [
+            "PDF၊ ပုံနှင့် ပုံအစုများ ဖွင့်ခြင်း",
+            "စာမျက်နှာ ဖြတ်တောက်ခြင်း၊ ခွဲခြင်း၊ လှည့်ခြင်း၊ ပေါင်းခြင်းနှင့် အစီအစဉ်ပြောင်းခြင်း",
+            "စာသားပါ PDF များ၏ Text layer ကို ဖတ်ယူခြင်း",
+            "စာသားကို စစ်ဆေး ပြင်ဆင်ခြင်း",
+            "TXT၊ Markdown နှင့် JSONL အဖြစ် သိမ်းခြင်း",
+        ],
+        cloudTitle: "မိမိ Google အကောင့်မှတစ်ဆင့်",
+        cloudBadge: "Google Docs OCR ကို ရွေးမှသာ",
+        cloudItems: [
+            "စာမျက်နှာတစ်ခုချင်းကို ပုံအဖြစ် ပြောင်း၍ မိမိ Google Drive သို့ တင်ပို့ပါတယ်",
+            "Google Docs OCR က ဖတ်ပြီး LEXO က စာသားကို ပြန်ယူပါတယ်",
+            "ယာယီ Drive ဖိုင်ကို LEXO က ချက်ချင်း ပြန်ဖျက်ပါတယ်",
+            "drive.file ခွင့်ပြုချက်အရ LEXO ကိုယ်တိုင် ဖန်တီးထားတဲ့ ဖိုင်တွေကိုသာ အသုံးပြုနိုင်ပါတယ်",
+            "အကောင့်ဝင်ခွင့် token ကို OS Keychain တွင် သိမ်းပြီး lexo logout ဖြင့် ဖျက်နိုင်ပါတယ်",
+        ],
+        setupNote:
+            "OCR သုံးဖို့ Google Cloud ကို တစ်ကြိမ် ပြင်ဆင်ရပါတယ်။ Project ဖန်တီးခြင်း၊ Drive API ဖွင့်ခြင်း၊ OAuth consent screen ပြင်ဆင်ခြင်းနဲ့ credentials.json ဖိုင် ရယူခြင်းတို့ ပါဝင်ပါတယ်။ အဆင့်ခြောက်ဆင့်လုံးကို ပထမဗီဒီယိုမှာ ကြည့်နိုင်ပါတယ်။",
+        setupLink: "ပြင်ဆင်နည်း လမ်းညွှန် ဖတ်ရန်",
+        flowTitle: "စာရွက်စာတမ်းတစ်ခုကို အစမှ အဆုံးအထိ",
+        flowLede:
+            "LEXO မှာ ဖိုင်တင်ပို့ရုံသာမက စာမျက်နှာတွေနဲ့ စာသားကိုပါ ပြင်ဆင်နိုင်ပါတယ်။ ဖိုင်ကို မသိမ်းမချင်း မူရင်းဖိုင်ကို မပြောင်းလဲပါဘူး။",
+        steps: [
+            {
+                title: "ဖွင့်ခြင်း",
+                body: "PDF၊ ပုံတစ်ပုံ သို့မဟုတ် ပုံအစုကို ဖွင့်ပါ။ စာသားပါတဲ့ စာမျက်နှာတွေနဲ့ စကင်ဖတ်ထားတဲ့ စာမျက်နှာတွေ ရောပါနေတဲ့ ဖိုင်ကိုလည်း သုံးနိုင်ပါတယ်။",
+                alt: "Import PDF or Image၊ Select Image Set နှင့် Batch OCR PDFs ခလုတ်များပါတဲ့ LEXO အဖွင့်မျက်နှာပြင်။",
+            },
+            {
+                title: "စာမျက်နှာများ ပြင်ဆင်ခြင်း",
+                body: "ခေါင်းစီးနဲ့ စာမျက်နှာနံပါတ်တွေကို ဖယ်ဖို့ Crop box ဆွဲပါ။ စာမျက်နှာနှစ်ခုတွဲ ပုံတွေကို ခွဲဖို့ မျဉ်းကို ဆွဲရွှေ့ပါ။ လက်ရှိစာမျက်နှာ၊ စာမျက်နှာအားလုံး သို့မဟုတ် ရွေးထားတဲ့ စာမျက်နှာတွေကို လှည့်ခြင်း၊ အစီအစဉ်ပြောင်းခြင်း၊ ဖျက်ခြင်းတို့ လုပ်နိုင်ပါတယ်။",
+                alt: "LEXO Crop editor - စကင်ဖတ်ထားတဲ့ မြန်မာ စာမျက်နှာပေါ်တွင် အပြာရောင် Crop box နှင့် Tune Panel ရှိ ဖြတ်တောက်မယ့် အနားသတ်များ။",
+            },
+            {
+                title: "စာသားထုတ်ယူခြင်း",
+                body: "Text layer နည်းလမ်းက PDF ထဲမှာ ပါပြီးသား စာသားကို မူရင်းအတိုင်း ချက်ချင်း ကူးယူပေးပါတယ်။ Google Docs OCR က စကင်ပုံတွေကို ဖတ်ပေးပါတယ်။ ရလဒ်တွေကို တစ်မျက်နှာချင်း ပြပေးပြီး ယာယီချို့ယွင်းမှုကြောင့် မအောင်မြင်ရင် အလိုအလျောက် ပြန်ကြိုးစားပါတယ်။ ကျန်တဲ့ မအောင်မြင်တဲ့ စာမျက်နှာတွေကို Retry Failed Pages ဖြင့် ပြန်လုပ်နိုင်ပါတယ်။",
+                alt: "Google Docs OCR ၂၅% ရောက်နေပြီး စာမျက်နှာပုံငယ်များပေါ်တွင် ပြီးဆုံး/စောင့်ဆိုင်း အမှတ်အသားများပါတဲ့ LEXO။",
+            },
+            {
+                title: "စစ်ဆေးခြင်း",
+                body: "စာမျက်နှာပုံနဲ့ ပြင်ဆင်နိုင်တဲ့ စာသားကို ယှဉ်တွဲပြထားလို့ စာသားထုတ်ယူရာမှာ ဒါမှမဟုတ် OCR ဖတ်ရာမှာ မှားထားတာတွေကို တိုက်စစ်ပြီး တိုက်ရိုက် ပြင်နိုင်ပါတယ်။ မြန်မာဖောင့် ပါဝင်ပြီးသားဖြစ်လို့ စက်မှာ ဖောင့်ထပ်မထည့်ဘဲ မြန်မာစာကို မှန်ကန်စွာ ဖတ်နိုင်ပါတယ်။",
+                alt: "မူရင်းစာမျက်နှာနှင့် ယှဉ်တွဲထားတဲ့ LEXO Text pane မှာ ထပ်နေတဲ့ သရအမှတ်ကို ရွေးထားပုံ။",
+            },
+            {
+                title: "ဖိုင်အဖြစ် သိမ်းခြင်း",
+                body: "Plain text၊ YAML frontmatter ပါတဲ့ Markdown သို့မဟုတ် NLP နဲ့ LLM အလုပ်တွေအတွက် တစ်မျက်နှာလျှင် မှတ်တမ်းတစ်ခုပါတဲ့ JSONL အဖြစ် သိမ်းနိုင်ပါတယ်။",
+                alt: "Markdown ဖိုင်အဖြစ် သိမ်းပြီးနောက် Exported lexo-sample-digital.md ဟု ပြသနေတဲ့ LEXO။",
+            },
+        ],
+        myTitle: "မြန်မာစာကို ဦးစားပေးထားပါတယ်",
+        myLede: "OCR ကိရိယာအများစုက လက်တင်စာလုံးတွေကို အဓိကထားပါတယ်။ LEXO ကတော့ အစကတည်းက မြန်မာစာကို ဦးစားပေး တည်ဆောက်ထားပါတယ်။",
+        myPoints: [
+            {
+                term: "မူလအားဖြင့် မြန်မာစာ",
+                body: "OCR ဘာသာစကား သတ်မှတ်ချက်ရဲ့ Default value မှာ my ဖြစ်ပါတယ်။ အခြားဘာသာအတွက် --lang သို့မဟုတ် LEXO_OCR_LANGUAGE ကို သုံးပါ။",
+            },
+            {
+                term: "မှန်ကန်တဲ့ Unicode",
+                body: "စာသားကို Unicode NFC စံပုံစံနဲ့ ညီအောင် ပြင်ပေးပါတယ်။ မြန်မာ စကားလုံးနှင့် စာကြောင်းခွဲမှုကို ပြတဲ့ Zero-width Space များကို ထိန်းသိမ်းထားပြီး မလိုအပ်တဲ့ Control Character များကို ဖယ်ရှားပါတယ်။",
+            },
+            {
+                term: "ဖောင့်ဟောင်း ပြဿနာကို ကိုင်တွယ်ခြင်း",
+                body: "Private Use Area glyph တွေပါတဲ့ Text layer ကို အသုံးမပြုနိုင်ကြောင်း စစ်တွေ့ရင် OCR သို့ ပို့ပါတယ်။ Win Innwa လို ASCII စာလုံးတွေကို သုံးထားတဲ့ ဖောင့်မျိုးမှာတော့ ထုတ်ယူထားတဲ့ စာသားက လက်တင်စာလုံးတွေ ဖြစ်နေပါမယ်။ အဲဒီအခါ Google Docs OCR သို့ ပြောင်းပြီး စာမျက်နှာကို ပုံအဖြစ် ဖတ်ယူနိုင်ပါတယ်။",
+            },
+        ],
+        specimenLabel: "မြန်မာ ဆိုတဲ့ စကားလုံးကို Unicode နဲ့ သိမ်းဆည်းပုံ",
+        legacyCaption:
+            "Win Innwa PDF မှ စာသားထုတ်ယူရာမှာ ဖောင့်က မြန်မာစာပုံစံနဲ့ ပြထားတဲ့ ASCII စာလုံးတွေကိုသာ ရရှိပုံ။ တတိယဗီဒီယိုမှ ပုံရိပ်ဖြစ်ပါတယ်။",
+        batchTitle: "PDF တစ်ဖိုင်လျှင် စာသားဖိုင်တစ်ခု",
+        batchBody:
+            "Folder တစ်ခု သို့မဟုတ် PDF ဖိုင်အချို့ကို ရွေးပါ။ PDF တစ်ဖိုင်လျှင် မူရင်းအမည်နဲ့ UTF-8 .txt ဖိုင်တစ်ခု ထုတ်ပေးပါတယ်။ ရလဒ်ဖိုင် ရှိပြီးသားဆိုရင် ကျော်ပေးတာကြောင့် အလုပ်ရပ်သွားရင်လည်း ပြန်စပြီး ကျန်တဲ့ဖိုင်တွေကို ဆက်လုပ်နိုင်ပါတယ်။",
+        batchFacts: [
+            "ရပ်သွားရင် ဆက်လုပ်နိုင်ပါတယ်။ --overwrite မပေးထားရင် ရှိပြီးသား ရလဒ်ဖိုင်တွေကို ကျော်ပေးပါတယ်",
+            "မူလအားဖြင့် စာမျက်နှာတိုင်းကို OCR လုပ်ပါတယ်။ --no-force-ocr ဖြင့် PDF ထဲ ပါပြီးသား အသုံးဝင်တဲ့ စာသားကို ထိန်းထားနိုင်ပါတယ်",
+            "App ထဲတွင် အဖွင့်မျက်နှာပြင်ရှိ Batch OCR PDFs သို့မဟုတ် Ctrl+Alt+O",
+        ],
+        batchAlt:
+            "Batch OCR PDFs Dialog - PDF ဖိုင် ၃ ခု ရွေးထားပြီး ရလဒ်ဖိုင် သိမ်းမယ့် Folder၊ OCR ဘာသာစကား my နှင့် Start OCR ခလုတ်။",
+        toolsTitle: "အကောင့်ဝင်စရာ မလိုတဲ့ PDF ကိရိယာများ",
+        toolsLede:
+            "CLI မှလည်း တူညီတဲ့ လုပ်ဆောင်ချက်တွေကို သုံးနိုင်ပါတယ်။ အောက်ပါ PDF ကိရိယာအားလုံးကို အင်တာနက်မလိုဘဲ သုံးနိုင်ပါတယ်။",
+        tools: [
+            [
+                'lexo pdf extract book.pdf --pages "1-3,7,10-" -o subset.pdf',
+                "စာမျက်နှာ အပိုင်းအခြား ထုတ်ယူခြင်း",
+            ],
+            [
+                "lexo pdf split book.pdf --every 10",
+                "၁၀ မျက်နှာစီ ဖိုင်ခွဲခြင်း",
+            ],
+            [
+                "lexo pdf crop book.pdf --top 8 --bottom 8 -o trimmed.pdf",
+                "အပေါ်အောက် ၈% စီ ဖြတ်ခြင်း",
+            ],
+            [
+                "lexo pdf split-spread scans.pdf -o pages.pdf",
+                "စာမျက်နှာနှစ်ခုတွဲ ပုံများကို ထက်ခြမ်းခွဲခြင်း",
+            ],
+            [
+                "lexo pdf rotate book.pdf -d 90 -o rotated.pdf",
+                "စာမျက်နှာများ လှည့်ခြင်း",
+            ],
+            [
+                "lexo pdf merge a.pdf b.pdf -o book.pdf",
+                "ဖိုင်များကို အစဉ်လိုက် ပေါင်းခြင်း",
+            ],
+        ],
+        toolsMore: "CLI အပြည့်အစုံ",
+        videosTitle: "သုံးမိနစ်ဖြင့် လုပ်ဆောင်ပုံကို လေ့လာပါ",
+        videosLede:
+            "LEXO ကို အသုံးပြုပြီး ရိုက်ကူးထားတဲ့ လမ်းညွှန်ဗီဒီယိုတို သုံးခု ဖြစ်ပါတယ်။ အသံမပါဘဲ မျက်နှာပြင်ပေါ်က စာတန်းတွေနဲ့ ရှင်းပြထားပါတယ်။",
+        useTitle: "ဘယ်သူတွေအတွက် အသုံးဝင်သလဲ",
+        uses: [
+            ["သုတေသီများနှင့် မော်ကွန်းတိုက်များ", "use-cases/#research"],
+            ["ထုတ်ဝေသူများနှင့် EPUB ထုတ်လုပ်ခြင်း", "use-cases/#publishing"],
+            ["မြန်မာ NLP Dataset များ", "use-cases/#datasets"],
+            [
+                "ဖောင့်ဟောင်းဖြင့် ရိုက်ထားတဲ့ စာရွက်စာတမ်းများ",
+                "use-cases/#legacy-fonts",
+            ],
+            ["ကျောင်းသားများနှင့် ဆရာများ", "use-cases/#education"],
+        ],
+        openTitle: "အခမဲ့ အသုံးပြုနိုင်တဲ့ Open Source ဆော့ဖ်ဝဲ",
+        openBody:
+            "LEXO ကို AGPL-3.0 လိုင်စင်ဖြင့် ထုတ်ဝေထားပါတယ်။ LEXO အကောင့်ဖွင့်ဖို့ မလိုသလို လစဉ်ကြေးနဲ့ စာမျက်နှာအလိုက် အခကြေးငွေလည်း မရှိပါဘူး။ Google Docs OCR ကို မိမိ Google အကောင့်ဖြင့် အခမဲ့ သုံးနိုင်ပါတယ်။ အက်ပ်နဲ့ CLI က တူညီတဲ့ အခြေခံစနစ်ကို သုံးထားလို့ အက်ပ်မှာ စမ်းထားတဲ့ လုပ်ငန်းစဉ်ကို script ရေးပြီး ထပ်မံလုပ်ဆောင်နိုင်ပါတယ်။",
+        openRepo: "GitHub ရှိ Source Code",
+        openContrib: "ပါဝင်ကူညီနည်း",
+        closeTitle: "LEXO ကို ထည့်သွင်းပါ",
+        closeBody:
+            "Python package တစ်ခုတည်းမှာ Desktop app နဲ့ CLI နှစ်မျိုးလုံး ပါဝင်ပါတယ်။ လိုအပ်တဲ့ အခြားဆော့ဖ်ဝဲတွေကို သီးခြား ထည့်သွင်းစရာ မလိုပါဘူး။",
+    },
+}[lang];
+
+const stepImages = [welcome, cropEditor, ocrRunning, proofread, exportDone];
+const stepExtras = {
+    en: {
+        proof: "A doubled vowel sign from a PDF text layer, corrected in LEXO's text pane.",
+        output: "Page 1 of the Markdown LEXO exported after that correction, unedited.",
+    },
+    my: {
+        proof: "PDF Text layer မှာ ထပ်နေတဲ့ သရအမှတ်ကို LEXO Text pane မှာ ပြင်ဆင်ထားပုံ။",
+        output: "ပြင်ဆင်ပြီးနောက် LEXO မှ ထုတ်ယူထားတဲ့ Markdown ရဲ့ ပထမစာမျက်နှာကို ထပ်မပြင်ဘဲ ပြထားပါတယ်။",
+    },
+}[lang];
+const extras = [
+    undefined,
+    undefined,
+    undefined,
+    {
+        kind: "proof" as const,
+        wrong: "နိုိုင်",
+        right: "နိုင်",
+        note: stepExtras.proof,
+    },
+    {
+        kind: "output" as const,
+        file: "lexo-sample-digital.md",
+        text: exportSample.trim(),
+        note: stepExtras.output,
+    },
+];
+const steps = copy.steps.map((s, i) => ({
+    ...s,
+    image: stepImages[i] ?? welcome,
+    extra: extras[i],
+}));
+const specimen = [
+    ["မ", "U+1019"],
+    ["ြ", "U+103C"],
+    ["န", "U+1014"],
+    ["်", "U+103A"],
+    ["မ", "U+1019"],
+    ["ာ", "U+102C"],
+];
+const v = videoCopy[lang];
+---
+
+<Base
+    lang={lang}
+    title={copy.title}
+    description={copy.description}
+    section="home"
+    path=""
+    ogImage={`/og/${lang}/home.png`}
+    jsonLd={[
+        softwareApplication(lang, url, copy.description),
+        website(lang, url),
+    ]}
+>
+    <!-- Hero: the scanner bed -->
+    <section class="wrap hero">
+        <div class="hero-copy">
+            <h1 class="display hero-title">
+                {copy.headline.map((line) => (
+                    <span class="block">{line}</span>
+                ))}
+            </h1>
+            <p class="echo" lang={copy.echoLang}>
+                {copy.echo}
+            </p>
+            <p class="lede mt-6">{copy.lede}</p>
+            <InstallTicket
+                lang={lang}
+                id="hero-install"
+                class="mt-8 max-w-136"
+            />
+            <div class="mt-5 flex flex-wrap gap-3">
+                <a class="btn btn-line" href={LINKS.repo}>
+                    <Icon name="github" size={18} />
+                    {t("cta.github")}
+                </a>
+                <a class="btn btn-line" href="#walkthroughs">
+                    <Icon name="play" size={16} />
+                    {copy.watch}
+                </a>
+            </div>
+        </div>
+        <div class="hero-bed">
+            <ScanCompare lang={lang} />
+        </div>
+    </section>
+
+    <div class="wrap">
+        <ul class="facts">
+            {copy.facts.map((f) => (
+                <li>{f}</li>
+            ))}
+            <li lang="en">AGPL-3.0</li>
+            <li>
+                <a class="link" href={sectionHref(lang, "changelog")} lang="en">
+                    v{VERSION}
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Promo -->
+    <section class="section" aria-labelledby="promo-title">
+        <div class="wrap">
+            <div class="max-w-3xl">
+                <h2 id="promo-title" class="h2">
+                    {copy.promoTitle}
+                </h2>
+                <p class="lede mt-4">{copy.promoLede}</p>
+            </div>
+            <PromoVideo
+                class="mt-10"
+                title={copy.promoTitle}
+                playLabel={copy.promoPlay}
+            />
+        </div>
+    </section>
+
+    <!-- The honest network ledger -->
+    <section class="section" aria-labelledby="ledger-title">
+        <div class="wrap">
+            <div class="max-w-3xl">
+                <h2 id="ledger-title" class="h2">
+                    {copy.ledgerTitle}
+                </h2>
+                <p class="lede mt-4">{copy.ledgerLede}</p>
+            </div>
+            <div class="ledger mt-10">
+                <div class="ledger-col">
+                    <h3 class="ledger-head">
+                        <Icon name="monitor" size={20} />
+                        {copy.localTitle}
+                    </h3>
+                    <ul>
+                        {copy.localItems.map((item) => (
+                            <li>{item}</li>
+                        ))}
+                    </ul>
+                </div>
+                <div class="ledger-col cloud">
+                    <h3 class="ledger-head">
+                        <Icon name="cloud" size={20} />
+                        {copy.cloudTitle}
+                    </h3>
+                    <p class="tag mb-3">{copy.cloudBadge}</p>
+                    <ul>
+                        {copy.cloudItems.map((item) => (
+                            <li
+                                set:html={item
+                                    .replace(
+                                        "drive.file",
+                                        '<code lang="en">drive.file</code>',
+                                    )
+                                    .replace(
+                                        "lexo logout",
+                                        '<code lang="en">lexo logout</code>',
+                                    )}
+                            />
+                        ))}
+                    </ul>
+                </div>
+            </div>
+            <p class="setup-note mt-8">
+                <Icon name="lock" size={18} class="mt-1 shrink-0 text-ink-3" />
+                <span>
+                    {copy.setupNote}{" "}
+                    <a
+                        class="link font-medium"
+                        href={href(lang, "docs/google-cloud-setup/")}
+                    >
+                        {copy.setupLink}
+                    </a>
+                </span>
+            </p>
+        </div>
+    </section>
+
+    <!-- Workflow on the bed -->
+    <section class="section rule-top" aria-labelledby="flow-title">
+        <div class="wrap">
+            <div class="max-w-3xl">
+                <h2 id="flow-title" class="h2">
+                    {copy.flowTitle}
+                </h2>
+                <p class="lede mt-4">{copy.flowLede}</p>
+            </div>
+            <div class="mt-12">
+                <Workflow lang={lang} steps={steps} />
+            </div>
+        </div>
+    </section>
+
+    <!-- Myanmar specifics -->
+    <section class="section rule-top" aria-labelledby="my-title">
+        <div class="wrap grid gap-12 lg:grid-cols-[1fr_1fr] lg:gap-16">
+            <div>
+                <h2 id="my-title" class="h2">
+                    {copy.myTitle}
+                </h2>
+                <p class="lede mt-4">{copy.myLede}</p>
+                <dl class="points mt-10">
+                    {copy.myPoints.map((p) => (
+                        <div>
+                            <dt class="h3 text-ink">{p.term}</dt>
+                            <dd class="mt-2 text-ink-2">{p.body}</dd>
+                        </div>
+                    ))}
+                </dl>
+            </div>
+            <div class="flex flex-col gap-10">
+                <figure class="specimen platen">
+                    <div class="specimen-word" lang="my">
+                        မြန်မာ
+                    </div>
+                    <ol class="specimen-cells" aria-label={copy.specimenLabel}>
+                        {specimen.map(([glyph, cp]) => (
+                            <li>
+                                <span class="glyph" lang="my">
+                                    {glyph === "ြ" ||
+                                    glyph === "်" ||
+                                    glyph === "ာ"
+                                        ? `◌${glyph}`
+                                        : glyph}
+                                </span>
+                                <span class="cp">{cp}</span>
+                            </li>
+                        ))}
+                    </ol>
+                    <figcaption class="folio mt-4">
+                        {copy.specimenLabel}
+                    </figcaption>
+                </figure>
+                <Shot
+                    src={legacyFrame}
+                    alt={copy.legacyCaption}
+                    caption={copy.legacyCaption}
+                    sizes="(min-width: 64rem) 44vw, 94vw"
+                />
+            </div>
+        </div>
+    </section>
+
+    <!-- Batch -->
+    <section class="section rule-top" aria-labelledby="batch-title">
+        <div class="wrap grid items-start gap-12 lg:grid-cols-[1fr_1.15fr] lg:gap-16">
+            <div>
+                <h2 id="batch-title" class="h2">
+                    {copy.batchTitle}
+                </h2>
+                <p class="lede mt-4">{copy.batchBody}</p>
+                <Command
+                    lang={lang}
+                    command="lexo ocr-batch ./pdfs --out-dir ./txt"
+                    class="mt-8"
+                />
+                <ul class="ticks mt-6">
+                    {copy.batchFacts.map((f) => (
+                        <li>{f}</li>
+                    ))}
+                </ul>
+            </div>
+            <div class="platen">
+                <Picture
+                    src={batchDialog}
+                    alt={copy.batchAlt}
+                    formats={["avif"]}
+                    fallbackFormat="webp"
+                    widths={[630, 1260]}
+                    sizes="(min-width: 64rem) 46vw, 94vw"
+                    loading="lazy"
+                    class="shot"
+                />
+            </div>
+        </div>
+    </section>
+
+    <!-- PDF tools -->
+    <section class="section rule-top" aria-labelledby="tools-title">
+        <div class="wrap">
+            <div class="max-w-3xl">
+                <h2 id="tools-title" class="h2">
+                    {copy.toolsTitle}
+                </h2>
+                <p class="lede mt-4">{copy.toolsLede}</p>
+            </div>
+            <dl class="tools mt-10">
+                {copy.tools.map(([cmd, label]) => (
+                    <div class="tool-row">
+                        <dt>{label}</dt>
+                        <dd>
+                            <Command lang={lang} command={cmd ?? ""} />
+                        </dd>
+                    </div>
+                ))}
+            </dl>
+            <a class="btn btn-line mt-8" href={href(lang, "docs/cli/")}>
+                {copy.toolsMore}
+                <Icon name="arrow" size={18} />
+            </a>
+        </div>
+    </section>
+
+    <!-- Walkthroughs -->
+    <section
+        id="walkthroughs"
+        class="section rule-top"
+        aria-labelledby="videos-title"
+    >
+        <div class="wrap">
+            <div class="max-w-3xl">
+                <h2 id="videos-title" class="h2">
+                    {copy.videosTitle}
+                </h2>
+                <p class="lede mt-4">{copy.videosLede}</p>
+            </div>
+            <div class="videos mt-12">
+                <Walkthrough
+                    lang={lang}
+                    id="scanned"
+                    title={v.scanned.title}
+                    summary={v.scanned.summary}
+                    class="lead"
+                />
+                <Walkthrough
+                    lang={lang}
+                    id="setup"
+                    title={v.setup.title}
+                    summary={v.setup.summary}
+                />
+                <Walkthrough
+                    lang={lang}
+                    id="legacy"
+                    title={v.legacy.title}
+                    summary={v.legacy.summary}
+                />
+            </div>
+        </div>
+    </section>
+
+    <!-- Who it's for -->
+    <section class="section rule-top" aria-labelledby="use-title">
+        <div class="wrap grid gap-10 lg:grid-cols-[1fr_1.4fr]">
+            <h2 id="use-title" class="h2">
+                {copy.useTitle}
+            </h2>
+            <ul class="uses">
+                {copy.uses.map(([label, path]) => (
+                    <li>
+                        <a href={href(lang, path)}>
+                            <span>{label}</span>
+                            <Icon name="arrow" size={20} />
+                        </a>
+                    </li>
+                ))}
+            </ul>
+        </div>
+    </section>
+
+    <!-- Lid closed: open source -->
+    <section class="lid" aria-labelledby="open-title">
+        <div class="wrap grid gap-10 py-20 lg:grid-cols-[1.3fr_1fr] lg:items-end lg:py-28">
+            <div>
+                <h2 id="open-title" class="h2">
+                    {copy.openTitle}
+                </h2>
+                <p class="lede mt-5">{copy.openBody}</p>
+            </div>
+            <div class="flex flex-wrap gap-3 lg:justify-end">
+                <a class="btn btn-paper" href={LINKS.repo}>
+                    <Icon name="github" size={18} />
+                    {copy.openRepo}
+                </a>
+                <a class="btn btn-outline-paper" href={LINKS.contributing}>
+                    {copy.openContrib}
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Close -->
+    <section class="section" aria-labelledby="close-title">
+        <div class="wrap grid items-center gap-10 lg:grid-cols-[1fr_1fr]">
+            <div>
+                <h2 id="close-title" class="h2">
+                    {copy.closeTitle}
+                </h2>
+                <p class="lede mt-4">{copy.closeBody}</p>
+                <a
+                    class="link mt-6 inline-flex items-center gap-2 font-medium"
+                    href={sectionHref(lang, "docs")}
+                >
+                    {t("cta.docs")}
+                    <Icon name="arrow" size={18} />
+                </a>
+            </div>
+            <InstallTicket lang={lang} id="close-install" />
+        </div>
+    </section>
+</Base>
+
+<style>
+    .hero {
+        display: grid;
+        gap: 3rem;
+        padding-block: clamp(2.5rem, 6vw, 5rem) 2.5rem;
+    }
+
+    .hero-title {
+        font-size: clamp(2.5rem, 1.2rem + 4.4vw, 4.6rem);
+    }
+
+    .hero-title span {
+        text-wrap: balance;
+    }
+
+    :global(:lang(my)) .hero-title {
+        font-size: clamp(1.9rem, 1.1rem + 2.6vw, 3.3rem);
+    }
+
+    :global(:lang(my)) .hero-title span {
+        white-space: nowrap;
+    }
+
+    .echo {
+        margin-top: 1rem;
+        text-wrap: balance;
+        font-size: clamp(1.05rem, 0.95rem + 0.5vw, 1.35rem);
+        color: var(--ink-3);
+        font-weight: 500;
+    }
+
+    .echo:lang(en) {
+        font-stretch: 108%;
+        font-weight: 620;
+        letter-spacing: -0.01em;
+    }
+
+    @media (min-width: 64rem) {
+        .hero {
+            grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+            align-items: start;
+            gap: 3.5rem;
+        }
+
+        .hero-bed {
+            margin-top: 0.5rem;
+        }
+    }
+
+    .facts {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem 0.85rem;
+        padding: 1.1rem 0 0;
+        margin: 0;
+        list-style: none;
+        border-top: 1px solid var(--rule);
+        font-size: var(--fs-ui);
+        color: var(--ink-2);
+    }
+
+    .facts li {
+        display: flex;
+        align-items: center;
+    }
+
+    /* The separator trails its item, so a wrapped line never starts with one. */
+    .facts li:not(:last-child)::after {
+        content: "";
+        width: 4px;
+        height: 4px;
+        margin-left: 0.85rem;
+        background: var(--rule-strong);
+        border-radius: 2px;
+    }
+
+    .section {
+        padding-block: clamp(4rem, 9vw, 7.5rem);
+        /* Skip layout for sections far below the fold; Myanmar shaping makes that layout costly. */
+        content-visibility: auto;
+        contain-intrinsic-size: auto 1200px;
+    }
+
+    .ledger {
+        display: grid;
+        border-top: 1.5px solid var(--ink);
+    }
+
+    .ledger-col {
+        padding: 1.5rem 0 1.75rem;
+    }
+
+    .ledger-col + .ledger-col {
+        border-top: 1px solid var(--rule);
+    }
+
+    .ledger-head {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        margin-bottom: 1rem;
+        font-size: var(--fs-md);
+        font-weight: 660;
+        font-stretch: 104%;
+    }
+
+    .ledger ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .ledger li {
+        padding: 0.6rem 0;
+        border-bottom: 1px dashed var(--rule);
+        color: var(--ink-2);
+    }
+
+    .ledger li :global(code) {
+        font-size: 0.8em;
+        background: var(--platen);
+        padding: 0.1em 0.35em;
+        border-radius: 2px;
+        color: var(--ink);
+    }
+
+    .cloud .ledger-head :global(svg) {
+        color: var(--scan-ink);
+    }
+
+    @media (min-width: 48rem) {
+        .ledger {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .ledger-col + .ledger-col {
+            border-top: 0;
+            border-left: 1px solid var(--rule);
+            padding-left: 2rem;
+        }
+
+        .ledger-col:first-child {
+            padding-right: 2rem;
+        }
+    }
+
+    .setup-note {
+        display: flex;
+        gap: 0.75rem;
+        max-width: 48rem;
+        padding: 1rem 1.15rem;
+        background: var(--platen);
+        border-radius: 3px;
+        color: var(--ink-2);
+        font-size: var(--fs-sm);
+    }
+
+    .points {
+        display: grid;
+        gap: 2rem;
+    }
+
+    .points > div {
+        padding-top: 1.25rem;
+        border-top: 1px solid var(--rule);
+    }
+
+    .specimen {
+        padding: 1.75rem 2rem;
+    }
+
+    .specimen-word {
+        font-family: var(--font-my);
+        font-size: clamp(3.5rem, 2.5rem + 4vw, 6rem);
+        line-height: 1.5;
+        font-weight: 600;
+        color: var(--ink);
+    }
+
+    .specimen-cells {
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 0;
+        margin-top: 1rem;
+        padding: 0;
+        list-style: none;
+        border-top: 1.5px solid var(--ink);
+    }
+
+    .specimen-cells li {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.75rem 0.25rem;
+        border-right: 1px solid var(--rule);
+    }
+
+    .specimen-cells li:last-child {
+        border-right: 0;
+    }
+
+    .glyph {
+        font-family: var(--font-my);
+        font-size: var(--fs-xl);
+        line-height: 1.6;
+        color: var(--ink);
+    }
+
+    .cp {
+        font-family: var(--font-mono);
+        font-stretch: 80%;
+        font-size: var(--fs-micro);
+        color: var(--ink-3);
+        letter-spacing: -0.02em;
+    }
+
+    .ticks {
+        list-style: none;
+        padding: 0;
+        display: grid;
+        gap: 0.6rem;
+        color: var(--ink-2);
+    }
+
+    .ticks li {
+        position: relative;
+        padding-left: 1.5rem;
+    }
+
+    .ticks li::before {
+        content: "";
+        position: absolute;
+        left: 0.15rem;
+        top: 0.62em;
+        width: 0.6rem;
+        height: 2px;
+        background: var(--ink-3);
+    }
+
+    :global(:lang(my)) .ticks li::before {
+        top: 0.85em;
+    }
+
+    .tools {
+        display: grid;
+        border-top: 1.5px solid var(--ink);
+    }
+
+    .tool-row {
+        display: grid;
+        gap: 0.6rem;
+        padding: 1rem 0;
+        border-bottom: 1px solid var(--rule);
+        align-items: center;
+    }
+
+    .tool-row dt {
+        color: var(--ink-2);
+        font-weight: 540;
+    }
+
+    .tool-row dd {
+        margin: 0;
+        min-width: 0;
+    }
+
+    @media (min-width: 56rem) {
+        .tool-row {
+            grid-template-columns: 16rem minmax(0, 1fr);
+            gap: 2rem;
+        }
+    }
+
+    .videos {
+        display: grid;
+        gap: 3rem 2.5rem;
+    }
+
+    @media (min-width: 56rem) {
+        .videos {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .videos :global(.lead) {
+            grid-column: 1 / -1;
+        }
+    }
+
+    .uses {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        border-top: 1.5px solid var(--ink);
+    }
+
+    .uses a {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1.1rem 0;
+        border-bottom: 1px solid var(--rule);
+        font-size: clamp(1.15rem, 1rem + 0.6vw, 1.5rem);
+        font-weight: 620;
+        font-stretch: 106%;
+        letter-spacing: -0.012em;
+        text-decoration: none;
+        color: var(--ink);
+    }
+
+    :global(:lang(my)) .uses a {
+        font-size: clamp(1.05rem, 0.98rem + 0.4vw, 1.25rem);
+        letter-spacing: 0;
+    }
+
+    .uses a :global(svg) {
+        color: var(--ink-3);
+        flex-shrink: 0;
+        transition:
+            transform 220ms var(--ease-out),
+            color 160ms ease;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+        .uses a:hover :global(svg) {
+            transform: translateX(4px);
+            color: var(--scan-ink);
+        }
+    }
+
+    .lid {
+        background: #121315;
+        color: #eeeff2;
+        --ink: #eeeff2;
+        --ink-2: #c3c5cb;
+        --ink-3: #9b9ea6;
+        --paper: #121315;
+    }
+
+    :global([data-theme="dark"]) .lid {
+        background: #0c0d0f;
+        border-block: 1px solid var(--rule);
+    }
+
+    .btn-paper {
+        background: #eeeff2;
+        color: #121315;
+    }
+
+    .btn-outline-paper {
+        border: 1px solid #5a5d64;
+        color: #eeeff2;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+        .btn-paper:hover {
+            background: #ffffff;
+        }
+
+        .btn-outline-paper:hover {
+            border-color: #eeeff2;
+        }
+    }
+</style>

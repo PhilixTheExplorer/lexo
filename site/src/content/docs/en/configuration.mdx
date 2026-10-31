@@ -1,0 +1,58 @@
+---
+title: Configuration and environment variables
+navTitle: Configuration
+description: LEXO_ environment variables for OCR language, render resolution, concurrency, batch size, logging, and credentials.json, plus where LEXO stores files.
+lang: en
+group: reference
+order: 3
+updated: 2026-10-22
+---
+
+LEXO works without configuration. When you need to change a default, set an environment variable, or put the same keys in a `.env` file in the folder you run LEXO from.
+
+## Settings
+
+| Variable | Default | What it does |
+|---|---|---|
+| `LEXO_OCR_LANGUAGE` | `my` | OCR language hint when `--lang` isn't given |
+| `LEXO_RENDER_DPI` | `300` | Resolution scanned pages are rendered at before OCR |
+| `LEXO_CONCURRENCY` | `4` | How many pages are OCR'd at the same time |
+| `LEXO_OCR_BATCH_SIZE` | `8` | Pages rendered and OCR'd per chunk, which bounds memory use |
+| `LEXO_LOG_LEVEL` | `INFO` | Logging verbosity |
+| `LEXO_GOOGLE_CREDENTIALS` | | Path to `credentials.json`, checked before the config folder |
+
+Example, for one command on macOS or Linux:
+
+```bash
+LEXO_CONCURRENCY=2 lexo ocr scan.pdf -o scan.txt
+```
+
+On Windows PowerShell:
+
+```powershell
+$env:LEXO_CONCURRENCY = "2"
+lexo ocr scan.pdf -o scan.txt
+```
+
+A `.env` file:
+
+```bash
+LEXO_OCR_LANGUAGE=my
+LEXO_CONCURRENCY=2
+```
+
+## Where LEXO keeps things
+
+Run `lexo info` to see the exact folders on your machine:
+
+```text
+lexo 0.4.1
+data dir:   …
+config dir: …
+```
+
+- **Config folder**: where `credentials.json` usually goes.
+- **Data folder**: working copies and temporary files. **Help → Clean Up Temporary Files…** in the desktop app removes leftovers from earlier sessions.
+- **OS keychain**: the Google sign-in token. Not a file you manage; `lexo logout` removes it.
+
+Folder locations follow each operating system's conventions (via `platformdirs`).

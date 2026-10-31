@@ -1,0 +1,74 @@
+---
+title: Getting started with LEXO
+navTitle: Getting started
+description: What LEXO does, what it needs, and the shortest path from a scanned Burmese PDF to clean Unicode text.
+lang: en
+group: start
+order: 1
+updated: 2026-10-22
+---
+
+import Shot from "~/components/Shot.astro";
+import ocrResult from "~/assets/screens/app-ocr-result.webp";
+
+LEXO (**L**ocal **EX**traction and **O**CR) is a desktop app and command-line tool that turns PDFs and images into editable text. It is built for Burmese (Myanmar script) first: Burmese is the default OCR language, text is normalized to Unicode NFC, and a Myanmar font ships with the app so proofreading works on any machine.
+
+<Shot
+  src={ocrResult}
+  alt="LEXO showing a scanned Burmese page beside its recognized Unicode text."
+  caption="A scanned page and its Google Docs OCR result, side by side in the desktop app."
+/>
+
+## Two ways to get text out
+
+LEXO picks the right tool for each page:
+
+- **Text layer.** Digital PDFs, the kind exported from Word or InDesign, already contain text. LEXO copies it directly. This is instant, lossless, and needs no network or account.
+- **Google Docs OCR.** Scanned PDFs and images have no text, only pictures of text. LEXO renders each page to an image and sends it to Google Docs OCR through **your own Google account**, then brings the text back.
+
+You can mix both in one document. LEXO routes page by page.
+
+## What you need
+
+| | Text layer and PDF tools | Google Docs OCR |
+|---|---|---|
+| Python 3.11 or newer | Yes | Yes |
+| Internet connection | No | Yes |
+| Google account | No | Yes |
+| One-time Google Cloud setup | No | Yes |
+
+The Google Cloud setup takes six steps and is covered in [Google Cloud OAuth setup](/en/docs/google-cloud-setup/).
+
+## The shortest path
+
+1. [Install LEXO](/en/docs/installation/):
+
+   ```bash
+   uv tool install lexo
+   ```
+
+2. Try it on a digital PDF. No account needed:
+
+   ```bash
+   lexo extract report.pdf -o report.txt
+   ```
+
+3. For scans, finish the [Google Cloud setup](/en/docs/google-cloud-setup/), then sign in once:
+
+   ```bash
+   lexo login
+   ```
+
+4. Open the desktop app and work through a document:
+
+   ```bash
+   lexo gui
+   ```
+
+   Open a file, tune the pages, pick **Text layer** or **Google Docs OCR**, run, proofread, and export. The [desktop app guide](/en/docs/desktop-app/) walks through each panel.
+
+## Where to go next
+
+- [OCR workflows](/en/docs/ocr-workflows/) explains when to use each mode and what to do with legacy-font PDFs.
+- [Batch OCR](/en/docs/batch-ocr/) covers folders of PDFs.
+- [Privacy and authentication](/en/docs/privacy/) lists exactly what leaves your computer.

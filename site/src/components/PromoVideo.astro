@@ -1,0 +1,112 @@
+---
+import { getImage } from "astro:assets";
+import poster from "~/assets/posters/promo.webp";
+import Icon from "~/components/Icon.astro";
+import { PROMO } from "~/data/site";
+
+interface Props {
+  title: string;
+  playLabel: string;
+  class?: string;
+}
+
+const { title, playLabel, class: className } = Astro.props;
+const image = await getImage({ src: poster, width: 1280, format: "avif" });
+const embed = `https://www.youtube-nocookie.com/embed/${PROMO.youtubeId}?autoplay=1&rel=0&modestbranding=1`;
+---
+
+<div class:list={["promo platen", className]} data-embed={embed} data-title={title}>
+  <button type="button" class="promo-play" aria-label={`${playLabel}: ${title}`}>
+    <img
+      class="shot"
+      src={image.src}
+      width="1280"
+      height="720"
+      alt=""
+      loading="lazy"
+      decoding="async"
+    />
+    <span class="promo-badge"><Icon name="play" size={28} /></span>
+  </button>
+</div>
+
+<script>
+  for (const box of document.querySelectorAll<HTMLElement>(".promo[data-embed]")) {
+    box.querySelector("button")?.addEventListener(
+      "click",
+      () => {
+        const frame = document.createElement("iframe");
+        frame.src = box.dataset.embed ?? "";
+        frame.title = box.dataset.title ?? "";
+        frame.allow = "autoplay; encrypted-media; picture-in-picture; fullscreen";
+        frame.allowFullscreen = true;
+        frame.referrerPolicy = "strict-origin-when-cross-origin";
+        box.replaceChildren(frame);
+        frame.focus();
+      },
+      { once: true },
+    );
+  }
+</script>
+
+<style>
+  .promo {
+    aspect-ratio: 16 / 9;
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .promo-play {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    border: 0;
+    background: #121315;
+    cursor: pointer;
+  }
+
+  .promo-play img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .promo-badge {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    display: grid;
+    place-items: center;
+    width: 5rem;
+    height: 5rem;
+    border-radius: 50%;
+    background: #ffab57;
+    color: #121315;
+    transition: transform 220ms var(--ease-out);
+  }
+
+  .promo-badge :global(svg) {
+    margin-left: 3px;
+  }
+
+  .promo-play:focus-visible {
+    outline: 3px solid var(--scan-ink);
+    outline-offset: -3px;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .promo-play:hover .promo-badge {
+      transform: scale(1.08);
+    }
+  }
+
+  .promo :global(iframe) {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+</style>

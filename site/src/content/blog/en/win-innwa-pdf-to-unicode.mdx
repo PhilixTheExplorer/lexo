@@ -1,0 +1,74 @@
+---
+title: "Win Innwa PDF to Unicode: why legacy Burmese fonts extract as gibberish"
+description: Win Innwa or Win Myanmar PDFs return English letters when copied. Why it happens, how to spot it, and two ways to get real Myanmar Unicode.
+lang: en
+published: 2026-10-22
+tags: [legacy fonts, Win Innwa, Myanmar Unicode]
+translationKey: legacy-fonts
+weight: 4
+minutes: 6
+---
+
+import Shot from "~/components/Shot.astro";
+import Walkthrough from "~/components/Walkthrough.astro";
+import legacy from "~/assets/screens/legacy-font-extract.webp";
+
+You open an old Burmese PDF. It reads perfectly on screen. You select a paragraph, paste it into a document, and get something like `armfaumif;edkuf`. The text is there, but it isn't Burmese.
+
+This isn't a broken file or a bug. It's how a whole generation of Burmese documents was made.
+
+## Why it happens
+
+Before Myanmar Unicode was widely used, people typed Burmese with fonts like **Win Innwa** and **Win Myanmar**. These fonts took a shortcut: instead of using Myanmar code points, they reused the ordinary keyboard characters (`a`, `r`, `m`, `;`) and simply drew Burmese shapes in their place.
+
+So when you typed the key for `m`, the file stored the letter `m`, and the font drew a Burmese letter. On screen, with the font installed, it looks right. Underneath, it's ASCII.
+
+A PDF made from such a document keeps the same arrangement: the text layer contains ASCII, and the embedded font paints it as Burmese. Copy the text, extract it, search it, or read it with a screen reader, and you get the ASCII.
+
+## How to recognise it
+
+Extract the text. In LEXO, open the PDF with **Text layer** mode selected and run it, or from the command line:
+
+```bash
+lexo extract document.pdf
+```
+
+If the page shows Burmese and the text pane shows Latin letters and punctuation, you have a legacy-font PDF.
+
+<Shot src={legacy} alt="LEXO's text pane full of ASCII characters extracted from a Win Innwa Burmese PDF." caption="A Win Innwa PDF in LEXO: Burmese on the page, ASCII in the text layer." />
+
+Two related cases look different but have the same cure:
+
+- **Private Use Area glyphs.** Some PDFs store Burmese as font-specific glyph IDs. LEXO detects that kind of text layer as unusable and OCRs those pages automatically.
+- **Zawgyi.** Zawgyi text uses Myanmar code points, but with non-standard meanings, so it looks scrambled in Unicode fonts. LEXO doesn't convert it.
+
+## Fix 1: Read the page with OCR
+
+The most direct route is to ignore the text layer and read what the page shows. In LEXO, switch the mode to **Google Docs OCR** and click **Run**. LEXO renders each page to an image and Google Docs OCR reads the Burmese visually, returning proper Myanmar Unicode.
+
+From the command line, force OCR so the ASCII layer is skipped:
+
+```bash
+lexo ocr document.pdf --force-ocr -o document.txt
+```
+
+Proofread the output as you would any OCR. The text pane sits next to the page image for exactly that.
+
+<Walkthrough lang="en" id="legacy" title="A legacy-font PDF, from ASCII to Unicode" summary="Recognise the case in the text pane, switch to Google Docs OCR, and get real Burmese back." headingLevel={3} />
+
+## Fix 2: Convert the ASCII with a font converter
+
+If you can't upload the document to Google, there's another way. Because Win Innwa text follows a fixed mapping from ASCII to Burmese, a Win-to-Unicode converter can translate the extracted characters directly. Extract the raw text with LEXO, then run it through a converter.
+
+This keeps everything offline and can be very accurate, but it depends on knowing which legacy font was used, and mixed or embedded fonts complicate it. OCR avoids that question by reading the rendered page.
+
+## Which should you use?
+
+| | Google Docs OCR | Font converter |
+|---|---|---|
+| Needs to know the font | No | Yes |
+| Leaves your computer | Page images go to your Google Drive | No |
+| Errors come from | Recognition mistakes | Wrong or mixed font mapping |
+| Best for | Mixed or unknown documents | Large, uniform Win Innwa archives that must stay offline |
+
+Either way, the goal is the same: Burmese stored as Myanmar Unicode, which every modern system can search, sort, and read aloud.

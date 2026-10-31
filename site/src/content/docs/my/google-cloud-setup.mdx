@@ -1,0 +1,93 @@
+---
+title: Google Docs OCR အတွက် Google Cloud OAuth ပြင်ဆင်နည်း
+navTitle: Google Cloud
+description: OCR မလုပ်မီ တစ်ကြိမ်သာ လုပ်ရတဲ့ Google Cloud ပြင်ဆင်မှု - Project ဖန်တီးခြင်း၊ Drive API ဖွင့်ခြင်း၊ OAuth ခွင့်ပြုချက်ပြင်ဆင်ခြင်း၊ credentials.json ရယူခြင်းနှင့် lexo login။
+lang: my
+group: start
+order: 3
+updated: 2026-10-22
+---
+
+import Walkthrough from "~/components/Walkthrough.astro";
+
+LEXO က မိမိ Google အကောင့်ဖြင့် အခမဲ့သုံးနိုင်တဲ့ Google Docs OCR ကို အသုံးပြုပါတယ်။ Drive ကို အသုံးပြုတဲ့ အက်ပ်တွေကို Google မှာ မှတ်ပုံတင်ရတာကြောင့် ကိုယ်ပိုင် OAuth client တစ်ခု ဖန်တီးဖို့ လိုပါတယ်။ ပြီးရင် မိမိ Google Cloud project မှ `credentials.json` ဖိုင်ကို ရယူရပါမယ်။ ဒီပြင်ဆင်မှုကို တစ်ကြိမ်သာ လုပ်ဖို့ လိုပါတယ်။
+
+PDF ထဲမှာ ပါပြီးသား စာသားကို ထုတ်ယူတာနဲ့ PDF ကိရိယာတွေကို သုံးတာအတွက်တော့ ဒီပြင်ဆင်မှု မလိုပါဘူး။
+
+<Walkthrough
+  lang="my"
+  id="setup"
+  title="အဆင့်အားလုံးကို ဗီဒီယိုဖြင့် လေ့လာပါ"
+  summary="uv ဖြင့် ထည့်သွင်းခြင်း၊ Project ဖန်တီးခြင်း၊ Drive API ဖွင့်ခြင်း၊ Consent ပြင်ဆင်ခြင်း၊ Credentials ဒေါင်းလုဒ်ဆွဲခြင်း၊ အကောင့်ဝင်ခြင်း။"
+  headingLevel={3}
+/>
+
+## ၁။ Google Cloud Project ဖန်တီးပါ (သို့မဟုတ် ရှိပြီးသား Project ကို ရွေးပါ)
+
+[Google Cloud Console](https://console.cloud.google.com/) ကို ဖွင့်ပြီး Project အသစ် ဖန်တီးပါ သို့မဟုတ် ရှိပြီးသား Project ကို ရွေးပါ။ အမည်မှာ အရေးမကြီးပါ။
+
+Billing ဖွင့်ရန် မလိုပါဘူး။ Google က Free Trial ကမ်းလှမ်းချက်များ ပြနိုင်ပေမယ့် လျစ်လျူရှုနိုင်ပါတယ်။
+
+## ၂။ Google Drive API ကို Enable လုပ်ပါ
+
+**APIs & Services → Library** သို့ သွားပြီး **Google Drive API** ကို ရှာ၍ **Enable** နှိပ်ပါ။
+
+## ၃။ OAuth Consent Screen ပြင်ဆင်ပါ
+
+**APIs & Services → OAuth consent screen** သို့ သွားပါ (Google က ဒီနေရာကို *Google Auth Platform* ဟုလည်း ခေါ်ပါတယ်)။
+
+- User Type - **External**။
+- App Name (ဥပမာ "LEXO") နှင့် မိမိ Email ကို ထည့်ပါ။
+- **Test users** အောက်တွင် မိမိ၏ Google အကောင့်ကို ထည့်ပါ။
+
+App ကို Verification အတွက် တင်သွင်းရန် မလိုပါဘူး။ **Testing** အဆင့်တွင်ပင် ထားနိုင်ပြီး ကိုယ်ပိုင်သုံးရန်အတွက် လုံလောက်ပါတယ်။
+
+## ၄။ Desktop OAuth Client ဖန်တီးပါ
+
+**APIs & Services → Credentials → Create credentials → OAuth client ID** သို့ သွားပါ။
+
+- Application type - **Desktop app**။
+- **Create** နှိပ်ပြီး **Download JSON** နှိပ်ပါ။
+- ဒေါင်းလုဒ်ဆွဲထားတဲ့ ဖိုင်အမည်ကို `credentials.json` ဟု ပြောင်းပါ။
+
+ဒီဖိုင်ကို project ရဲ့ စကားဝှက်လို လုံခြုံစွာ ထိန်းသိမ်းပါ။ Repository ထဲ commit လုပ်တာ၊ issue မှာ ပူးတွဲပေးတာမျိုး မလုပ်ပါနဲ့။
+
+## ၅။ credentials.json ကို LEXO ရှာမည့်နေရာတွင် ထားပါ
+
+LEXO က အောက်ပါ နေရာများကို အစဉ်လိုက် ရှာပြီး ပထမဆုံး တွေ့တဲ့ဖိုင်ကို သုံးပါတယ် -
+
+1. `LEXO_GOOGLE_CREDENTIALS` Environment Variable တွင် ပေးထားတဲ့ လမ်းကြောင်း။
+2. LEXO Config folder (`lexo info` ဖြင့် ကြည့်ပါ)။
+3. လက်ရှိ အလုပ်လုပ်နေတဲ့ Folder။
+
+ပုံမှန်အသုံးပြုသူတွေအတွက် Config folder ထဲမှာ ထားတာက အလွယ်ကူဆုံး ဖြစ်ပါတယ်။
+
+## ၆။ အကောင့်ဝင်ပါ
+
+```bash
+lexo login
+```
+
+Desktop app မှာမူ **Account → Sign in with Google** ကို သုံးပါ။
+
+ဘရောက်ဇာဝင်းဒိုး ပွင့်လာပါမယ်။ အက်ပ်ကို Testing အဆင့်မှာ ထားတာကြောင့် Google က "hasn't verified this app" လို့ သတိပေးပါမယ်။ မိမိကိုယ်တိုင် ဖန်တီးပြီး အသုံးပြုတဲ့ အက်ပ်ဖြစ်လို့ ဒီသတိပေးချက် ပေါ်တာက ပုံမှန်ဖြစ်ပါတယ်။ Continue ကို နှိပ်ပြီး ခွင့်ပြုချက်ပေးပါ။
+
+LEXO က အကောင့်ဝင်ခွင့် token ကို OS ရဲ့ Keychain တွင် သိမ်းဆည်းပါတယ်။ `credentials.json` ကို အကောင့်ဝင်ချိန်၌သာ ဖတ်ပါတယ်။
+
+## LEXO က ဘာတွေကို သုံးခွင့်ရသလဲ
+
+LEXO က `drive.file` ခွင့်ပြုချက်တစ်ခုတည်းကိုသာ တောင်းပါတယ်။ ဒီခွင့်ပြုချက်နဲ့ **LEXO ကိုယ်တိုင် ဖန်တီးထားတဲ့ ဖိုင်တွေကိုသာ** ကြည့်နိုင်၊ ဖျက်နိုင်ပါတယ်။ OCR အတွက် တင်ပို့ထားတဲ့ ယာယီစာမျက်နှာပုံတွေက ဒီဖိုင်တွေထဲမှာ ပါဝင်ပါတယ်။ မိမိ Drive ထဲက အခြားဖိုင်တွေကို မဖတ်နိုင်ပါဘူး။
+
+အသေးစိတ်ကို [ကိုယ်ရေးအချက်အလက် လုံခြုံမှုနှင့် အကောင့်ဝင်ခြင်း](/my/docs/privacy/) တွင် ကြည့်ပါ။
+
+## အကောင့်ဝင်ထားမှု သက်တမ်း ၇ ရက်ခန့်တွင် ကုန်ဆုံးခြင်း
+
+OAuth အက်ပ်ကို Testing အဆင့်မှာ ထားသရွေ့ အကောင့်ဝင်ထားမှု သက်တမ်းက ၇ ရက်ခန့်ကြာရင် ကုန်ဆုံးတတ်ပါတယ်။ အဲဒီအခါ OCR က ရပ်သွားပြီး "sign in again" လို့ အသိပေးပါမယ်။ Desktop app မှာ အကောင့်ပြန်ဝင်ပြီး ဆက်လုပ်ဖို့ လမ်းညွှန်ပေးပါတယ်။ CLI သုံးနေရင် `lexo login` ကို ပြန်လုပ်ဆောင်ပါ။
+
+## အကောင့်ထွက်ခြင်း
+
+```bash
+lexo logout
+```
+
+အက်ပ်မှာတော့ **Account → Sign out** ကို ရွေးပါ။ Keychain ထဲမှာ သိမ်းထားတဲ့ token ကို ဖျက်ပေးပါတယ်။

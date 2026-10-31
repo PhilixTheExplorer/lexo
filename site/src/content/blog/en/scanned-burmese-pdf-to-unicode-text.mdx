@@ -1,0 +1,118 @@
+---
+title: How to convert a scanned Burmese PDF to Unicode text
+description: "Turn a scanned Myanmar PDF into clean, editable Unicode text with free Google Docs OCR: cropping, spreads, proofreading, and export."
+lang: en
+published: 2026-10-22
+tags: [Burmese OCR, Myanmar PDF to text, scanned PDF]
+translationKey: scanned-pdf
+weight: 5
+minutes: 7
+---
+
+import Shot from "~/components/Shot.astro";
+import Walkthrough from "~/components/Walkthrough.astro";
+import crop from "~/assets/screens/app-crop-editor.webp";
+import spread from "~/assets/screens/app-split-spread.webp";
+import result from "~/assets/screens/app-ocr-result.webp";
+
+A scanned PDF is a stack of photographs. Each page looks like text, but to a computer it's an image: you can't search it, copy from it, or feed it to a spell-checker. To get Burmese text out, something has to read the pictures. That's optical character recognition, OCR.
+
+This guide walks through the whole job with LEXO, a free desktop app built for Burmese: from a raw scan to Myanmar Unicode text you can edit and publish.
+
+## Before you start
+
+You need:
+
+- **LEXO**, installed with `uv tool install lexo` (or `pipx install lexo`). See [installation](/en/docs/installation/).
+- **A Google account.** LEXO uses Google Docs OCR, which is free and reads printed Burmese well.
+- **The one-time Google Cloud setup**, which gives LEXO permission to use Google Docs OCR through your account. It's six steps; follow the [setup guide](/en/docs/google-cloud-setup/) once and you're done.
+
+Then sign in:
+
+```bash
+lexo login
+```
+
+## Step 1: Check whether you really have a scan
+
+Some PDFs that look scanned actually carry a text layer. If yours does, you don't need OCR at all, and extraction is instant and exact. Try it first:
+
+```bash
+lexo extract book.pdf -o book.txt
+```
+
+If LEXO reports that the file "looks scanned", or the output is empty, carry on. If you get English letters where the page shows Burmese, the PDF uses a legacy font: see [Win Innwa PDF to Unicode](/en/blog/win-innwa-pdf-to-unicode/).
+
+## Step 2: Open the PDF in the desktop app
+
+```bash
+lexo gui
+```
+
+Click **Import PDF or Image** and pick your file. LEXO makes a working copy, so nothing you do changes the original until you save.
+
+## Step 3: Split two-page spreads
+
+If each scanned image holds two book pages side by side, split them before OCR. Otherwise lines from the left and right pages can end up interleaved.
+
+Open the **PDF** tab in the Tune panel, click **Show split line**, drag the line onto the gutter, and click **Split two-up at line**.
+
+<Shot src={spread} alt="A two-page spread with LEXO's draggable split line on the gutter." caption="Drag the line to the gutter, then split. Each spread becomes two pages, left first." />
+
+## Step 4: Crop running heads and page numbers
+
+Book titles at the top of every page and page numbers at the bottom will appear in your text unless you remove them. Switch to the **Edit** tab: a crop box appears on the page. Drag its edges to the text block, set **Apply to** to **All pages**, and click **Apply crop**.
+
+<Shot src={crop} alt="LEXO's crop box drawn over a scanned Burmese page." caption="Crop once, apply to every page." />
+
+## Step 5: Run Google Docs OCR
+
+Go back to the **Run** tab, choose **Google Docs OCR**, and click **Run**. The language hint is Burmese by default.
+
+Each page is rendered to an image, uploaded to your own Google Drive, read by Google Docs OCR, and deleted again. Pages appear in the text pane as they finish. A long book takes a while; the time depends on your connection and on Google.
+
+If a page fails because of a network hiccup, LEXO retries it automatically. Anything still failing at the end can be re-run on its own with **Retry Failed Pages**.
+
+## Step 6: Proofread side by side
+
+<Shot src={result} alt="A scanned Burmese page next to its recognized Unicode text in LEXO." caption="Each page beside its text. Fix mistakes in place." />
+
+OCR is good, not perfect. Go through the pages with the image beside the text. Zoom into the page with `Ctrl` and the scroll wheel when a line is hard to read. Typical things to check:
+
+- stacked consonants and medials in small or worn type;
+- punctuation (`၊` and `။`) next to numbers;
+- lines broken across a page boundary.
+
+## Step 7: Export
+
+Pick a format under **Export as** and click **Export**:
+
+- **Plain text** for reading and editing;
+- **Markdown** if you want a heading per page, which is useful for citations and EPUB work;
+- **JSONL** for datasets, with one record per page.
+
+The text is normalized to Unicode NFC, and Burmese zero-width spaces are preserved. [More on formats](/en/docs/export-formats/).
+
+## Doing it from the command line
+
+Everything above has a CLI equivalent. Prepare the PDF, then OCR it:
+
+```bash
+lexo pdf split-spread scan.pdf -o pages.pdf
+lexo pdf crop pages.pdf --top 7 --bottom 9 -o cropped.pdf
+lexo ocr cropped.pdf --lang my -o book.txt
+```
+
+For a folder of PDFs, use [batch OCR](/en/docs/batch-ocr/):
+
+```bash
+lexo ocr-batch ./scans --out-dir ./txt
+```
+
+## Watch the whole workflow
+
+<Walkthrough lang="en" id="scanned" title="Scanned Burmese PDF in the desktop app" summary="Split, crop, OCR, review, export, in about 40 seconds." headingLevel={3} />
+
+## A note on privacy
+
+Pages you OCR are uploaded to your Google Drive for recognition, then deleted. Everything else (opening, cropping, splitting, proofreading, exporting) happens on your computer. Only OCR documents you're allowed to send to Google. Details are in [Privacy and authentication](/en/docs/privacy/).

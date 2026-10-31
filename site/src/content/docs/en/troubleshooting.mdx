@@ -1,0 +1,67 @@
+---
+title: Troubleshooting
+description: "Fixes for common LEXO problems: missing credentials.json, expired Google sign-in, empty text from scans, ASCII from legacy fonts, and failed OCR pages."
+lang: en
+group: help
+order: 1
+updated: 2026-10-22
+---
+
+## "Google OAuth client file not found"
+
+LEXO can't find `credentials.json`. Put it in your config folder (`lexo info` shows where), in the folder you run LEXO from, or point `LEXO_GOOGLE_CREDENTIALS` at it. Make sure the file is named exactly `credentials.json`, not `client_secret_….json`. See [Google Cloud setup](/en/docs/google-cloud-setup/).
+
+## "Not signed in" or "Your Google sign-in has expired"
+
+Run `lexo login`, or **Account → Sign in with Google** in the app. If your OAuth app is in Testing status, Google expires sign-ins roughly every seven days, so this is routine.
+
+In the desktop app, starting OCR while signed out offers to sign you in and then retries.
+
+## Google says "This app isn't verified"
+
+Expected. You created the OAuth app yourself and it's in Testing status. Continue past the warning; only the test users you added can sign in.
+
+## Sign-in fails with "access denied"
+
+Your Google account isn't listed under **Test users** on the OAuth consent screen. Add it and try again.
+
+## Extracting a scanned PDF gives no text
+
+Scans have no text layer. `lexo extract` will note that the file "looks scanned". Use Google Docs OCR: `lexo ocr`, or switch the app to **Google Docs OCR**.
+
+## The text is English letters, but the page is Burmese
+
+The PDF was typed in a legacy ASCII-mapped font such as Win Innwa. Use Google Docs OCR so the page is read as an image. Details in [OCR workflows](/en/docs/ocr-workflows/#legacy-font-pdfs-win-innwa-win-myanmar).
+
+## The Burmese text looks scrambled
+
+If the text came from a PDF's text layer, it may be Zawgyi-encoded. LEXO doesn't convert Zawgyi. Run Google Docs OCR on those pages to get standard Unicode.
+
+## Some pages failed
+
+LEXO retries each page automatically on transient errors. If pages still fail:
+
+- In the app, click **Retry Failed Pages**. Only those pages run again.
+- From the CLI, the failed page numbers are printed; rerun them with `--pages`.
+
+Very slow or unstable connections make failures more likely. Lowering `LEXO_CONCURRENCY` can help.
+
+## OCR text includes running heads and page numbers
+
+Crop them off before OCR: the **Edit** tab's crop box, or `lexo pdf crop`. See [PDF tools](/en/docs/pdf-tools/#crop-margins).
+
+## Two book pages come out as one jumbled page
+
+The scan is a two-up spread. Split it first: **Show split line** in the PDF tab, or `lexo pdf split-spread`.
+
+## Burmese shows as boxes in the app
+
+It shouldn't: LEXO bundles Noto Sans Myanmar. If you see boxes in a file you exported, the program you opened it in lacks a Myanmar Unicode font. Install one, such as Noto Sans Myanmar or Padauk.
+
+## `lexo` isn't found after installing
+
+The tool folder isn't on your PATH. With uv, run `uv tool update-shell` and open a new terminal. With pipx, run `pipx ensurepath`.
+
+## Still stuck?
+
+Open an issue on [GitHub](https://github.com/PhilixTheExplorer/lexo/issues) with your OS, Python version, LEXO version (`lexo --version`), install method, and what happened. PDFs and images can contain private information, so remove anything sensitive before attaching them.

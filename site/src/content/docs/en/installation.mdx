@@ -1,0 +1,95 @@
+---
+title: Install LEXO with uv, pipx, or pip
+navTitle: Installation
+description: Install the LEXO desktop app and CLI from PyPI on Windows, macOS, or Linux, check the install, and keep it up to date.
+lang: en
+group: start
+order: 2
+updated: 2026-10-22
+---
+
+LEXO is a Python package published on [PyPI](https://pypi.org/project/lexo/). One install gives you both the `lexo` command-line tool and the desktop app (`lexo gui`). Everything it needs, including the Qt toolkit, the PDF engine, and a Myanmar font, comes with the package. There are no separate system dependencies.
+
+There is no standalone installer (`.exe`, `.dmg`, or `.AppImage`). You install LEXO with a Python package tool.
+
+## Requirements
+
+- **Python 3.11, 3.12, or 3.13.** LEXO's CI tests these versions on Windows, macOS, and Linux.
+- About as much disk space as any Qt desktop app; PySide6 is the largest dependency.
+- An internet connection for the install itself, and later for Google Docs OCR only.
+
+If you don't have Python, [uv](https://docs.astral.sh/uv/) can install and manage it for you.
+
+## Recommended: uv
+
+[uv](https://docs.astral.sh/uv/) installs LEXO as an isolated tool and puts `lexo` on your PATH:
+
+```bash
+uv tool install lexo
+```
+
+## With pipx
+
+[pipx](https://pipx.pypa.io/) does the same job if you already use it:
+
+```bash
+pipx install lexo
+```
+
+## With pip
+
+Any standard Python environment works too. Use a virtual environment if you don't want LEXO's dependencies in your global Python:
+
+```bash
+python -m pip install lexo
+```
+
+## Check the install
+
+```bash
+lexo --version
+lexo info
+```
+
+`lexo info` prints the version and the folders where LEXO keeps its data and configuration. You'll need the config folder for the [Google Cloud setup](/en/docs/google-cloud-setup/).
+
+Then launch the desktop app:
+
+```bash
+lexo gui
+```
+
+## Updating
+
+Check whether a newer release is on PyPI:
+
+```bash
+lexo check-update
+```
+
+The desktop app has the same check under **Help → Check for Updates**. To upgrade:
+
+```bash
+uv tool upgrade lexo
+# or
+pipx upgrade lexo
+# or
+python -m pip install --upgrade lexo
+```
+
+Release notes are on the [changelog](/en/changelog/).
+
+## Uninstalling
+
+```bash
+uv tool uninstall lexo
+# or
+pipx uninstall lexo
+```
+
+Run `lexo logout` first if you signed in to Google, so the token is removed from your OS keychain.
+
+## Next steps
+
+- No account needed: try `lexo extract` on a digital PDF, or the [PDF tools](/en/docs/pdf-tools/).
+- For scans: [set up Google Docs OCR](/en/docs/google-cloud-setup/).

@@ -1,0 +1,96 @@
+---
+import type { Lang } from "~/i18n/ui";
+import { href } from "~/i18n/utils";
+import { type Doc, docSlug, GROUP_LABELS, GROUPS } from "~/lib/docs";
+
+interface Props {
+  lang: Lang;
+  docs: Doc[];
+  current?: string | undefined;
+  label: string;
+}
+
+const { lang, docs, current, label } = Astro.props;
+const groups = GROUPS.map((group) => ({
+  group,
+  label: GROUP_LABELS[lang][group],
+  items: docs.filter((d) => d.data.group === group),
+})).filter((g) => g.items.length > 0);
+---
+
+<nav aria-label={label} class="docs-nav">
+  {
+    groups.map((g) => (
+      <div class="group">
+        <p class="folio group-label">{g.label}</p>
+        <ul>
+          {g.items.map((doc) => {
+            const slug = docSlug(doc);
+            return (
+              <li>
+                <a
+                  href={href(lang, `docs/${slug}/`)}
+                  aria-current={slug === current ? "page" : undefined}
+                >
+                  {doc.data.navTitle ?? doc.data.title}
+                </a>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    ))
+  }
+</nav>
+
+<style>
+  .group + .group {
+    margin-top: 1.5rem;
+  }
+
+  .group-label {
+    margin-bottom: 0.4rem;
+  }
+
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    border-left: 1px solid var(--rule);
+  }
+
+  a {
+    display: block;
+    margin-left: -1px;
+    padding: 0.32rem 0 0.32rem 0.9rem;
+    border-left: 2px solid transparent;
+    font-size: var(--fs-ui);
+    line-height: 1.45;
+    color: var(--ink-2);
+    text-decoration: none;
+    transition:
+      color 160ms ease,
+      border-color 160ms ease;
+  }
+
+  :global(:lang(my)) a {
+    line-height: 1.75;
+  }
+
+  a[aria-current="page"] {
+    color: var(--ink);
+    font-weight: 600;
+    border-left-color: var(--scan);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    a:hover {
+      color: var(--ink);
+      border-left-color: var(--rule-strong);
+    }
+
+    a[aria-current="page"]:hover {
+      border-left-color: var(--scan);
+    }
+  }
+</style>

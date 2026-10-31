@@ -1,0 +1,442 @@
+---
+import Breadcrumbs from "~/components/Breadcrumbs.astro";
+import Command from "~/components/Command.astro";
+import Icon from "~/components/Icon.astro";
+import InstallTicket from "~/components/InstallTicket.astro";
+import Walkthrough from "~/components/Walkthrough.astro";
+import { INSTALL, LINKS, PYTHON_REQUIRES, VERSION } from "~/data/site";
+import type { Lang } from "~/i18n/ui";
+import { href, staticLangPaths, useT } from "~/i18n/utils";
+import { videoCopy } from "~/i18n/videos";
+import Base from "~/layouts/Base.astro";
+import { latestRelease } from "~/lib/changelog";
+import { breadcrumbList, softwareApplication } from "~/lib/schema";
+
+export const getStaticPaths = staticLangPaths;
+
+const lang = Astro.params.lang as Lang;
+const t = useT(lang);
+const site = Astro.site ?? new URL("https://lexo.philix.dev");
+const url = new URL(href(lang, "download/"), site).href;
+const release = latestRelease();
+
+const copy = {
+  en: {
+    title: "Download and install LEXO",
+    h1: "Install LEXO",
+    description: `Install LEXO ${VERSION}, the free Burmese OCR desktop app and CLI, with uv, pipx, or pip. Requirements, Google Docs OCR setup, updating, and releases.`,
+    lede: "LEXO is a Python package. One command installs the CLI and the desktop app together. There's no separate installer to download.",
+    current: "Current release",
+    released: "Released",
+    notes: "Release notes",
+    methodsTitle: "Pick an installer",
+    methods: [
+      {
+        key: "uv" as const,
+        name: "uv",
+        note: "Recommended. Installs LEXO as an isolated tool and can install Python for you.",
+        link: LINKS.uv,
+      },
+      {
+        key: "pipx" as const,
+        name: "pipx",
+        note: "Same idea as uv, if pipx is what you already use.",
+        link: LINKS.pipx,
+      },
+      {
+        key: "pip" as const,
+        name: "pip",
+        note: "Works in any Python environment. Use a virtual environment to keep things tidy.",
+        link: LINKS.python,
+      },
+    ],
+    reqTitle: "Requirements",
+    req: [
+      ["Python", `${PYTHON_REQUIRES}, 3.12, or 3.13`],
+      ["Operating system", "Windows, macOS, or Linux, with a desktop for the GUI"],
+      ["System dependencies", "None. Qt, the PDF engine, and a Myanmar font ship in the package"],
+      ["For Google Docs OCR", "A Google account and a one-time Google Cloud setup"],
+      ["Licence", "AGPL-3.0-or-later, free of charge"],
+    ],
+    firstTitle: "First run",
+    firstSteps: [
+      { text: "Check the install and find your config folder.", cmd: "lexo info" },
+      { text: "Open the desktop app.", cmd: "lexo gui" },
+      {
+        text: "Text-layer extraction and every PDF tool work now. For scans, do the Google Cloud setup once, then sign in.",
+        cmd: "lexo login",
+      },
+    ],
+    setupLink: "Google Cloud setup guide",
+    updateTitle: "Updating",
+    updateBody: "Check PyPI for a newer release, then upgrade with the tool you installed with.",
+    sourcesTitle: "Where releases live",
+    sources: [
+      ["PyPI", LINKS.pypi, "The package the install commands pull from"],
+      ["GitHub releases", LINKS.releases, "Wheels, source archives, and notes for each version"],
+      ["Source code", LINKS.repo, "Build from source with uv"],
+    ],
+    noInstaller:
+      "LEXO has no .exe, .dmg, or AppImage. If you find one elsewhere, it isn't from this project.",
+  },
+  my: {
+    title: "LEXO ကို ဒေါင်းလုဒ်ဆွဲ၍ ထည့်သွင်းခြင်း",
+    h1: "LEXO ကို ထည့်သွင်းပါ",
+    description: `အခမဲ့ မြန်မာ OCR Desktop app နှင့် CLI ဖြစ်တဲ့ LEXO ${VERSION} ကို uv၊ pipx သို့မဟုတ် pip ဖြင့် ထည့်သွင်းပါ။ လိုအပ်ချက်များ၊ Google Docs OCR ပြင်ဆင်နည်း၊ ဗားရှင်းမြှင့်နည်းနှင့် ဒေါင်းလုဒ်လင့်ခ်များ။`,
+    lede: "LEXO ကို Python package အဖြစ် ထည့်သွင်းနိုင်ပါတယ်။ Command တစ်ကြောင်းတည်းနဲ့ Desktop app နဲ့ CLI နှစ်မျိုးလုံးကို ရရှိပါတယ်။ သီးခြား installer ဖိုင် ဒေါင်းလုဒ်ဆွဲဖို့ မလိုပါဘူး။",
+    current: "လက်ရှိဗားရှင်း",
+    released: "ထုတ်ဝေတဲ့ရက်",
+    notes: "မှတ်တမ်း",
+    methodsTitle: "ထည့်သွင်းနည်း ရွေးပါ",
+    methods: [
+      {
+        key: "uv" as const,
+        name: "uv",
+        note: "အကြံပြုထားတဲ့နည်း ဖြစ်ပါတယ်။ LEXO ကို သီးခြား tool အဖြစ် ထည့်သွင်းပေးပြီး Python ကိုပါ ထည့်သွင်းပေးနိုင်ပါတယ်။",
+        link: LINKS.uv,
+      },
+      {
+        key: "pipx" as const,
+        name: "pipx",
+        note: "pipx ကို သုံးနေပြီးသားဆိုရင် uv နှင့် အလားတူ အလုပ်လုပ်ပါတယ်။",
+        link: LINKS.pipx,
+      },
+      {
+        key: "pip" as const,
+        name: "pip",
+        note: "Python ပတ်ဝန်းကျင်တိုင်းမှာ သုံးနိုင်ပါတယ်။ သီးခြား Python ပတ်ဝန်းကျင် (virtual environment) သုံးရင် ပိုသပ်ရပ်ပါတယ်။",
+        link: LINKS.python,
+      },
+    ],
+    reqTitle: "လိုအပ်ချက်များ",
+    req: [
+      ["Python", `${PYTHON_REQUIRES}၊ 3.12 သို့မဟုတ် 3.13`],
+      ["OS", "Windows၊ macOS သို့မဟုတ် Linux (GUI အတွက် Desktop ပါရှိရမယ်)"],
+      ["System Dependency", "မလိုပါဘူး။ Qt၊ PDF Engine နှင့် မြန်မာဖောင့် ပက်ကေ့ချ်ထဲ ပါပြီးသား"],
+      ["Google Docs OCR အတွက်", "Google အကောင့် တစ်ခုနှင့် တစ်ကြိမ်သာ လုပ်ရတဲ့ Google Cloud ပြင်ဆင်မှု"],
+      ["License", "AGPL-3.0-or-later၊ အခမဲ့"],
+    ],
+    firstTitle: "ပထမဆုံး အသုံးပြုခြင်း",
+    firstSteps: [
+      { text: "ထည့်သွင်းမှု အောင်မြင်မအောင်မြင် စစ်ဆေးပြီး Config folder ကို ရှာပါ။", cmd: "lexo info" },
+      { text: "Desktop app ကို ဖွင့်ပါ။", cmd: "lexo gui" },
+      {
+        text: "Text layer မှ ထုတ်ယူခြင်းနှင့် PDF ကိရိယာအားလုံးကို ယခုပင် သုံးနိုင်ပါပြီ။ စကင်ဖိုင်များအတွက် Google Cloud ပြင်ဆင်မှုကို တစ်ကြိမ် ပြုလုပ်ပြီး အကောင့်ဝင်ပါ။",
+        cmd: "lexo login",
+      },
+    ],
+    setupLink: "Google Cloud ပြင်ဆင်နည်း",
+    updateTitle: "ဗားရှင်းမြှင့်ခြင်း",
+    updateBody: "PyPI မှာ ဗားရှင်းအသစ် ရှိမရှိ စစ်ဆေးပြီး မူလထည့်သွင်းခဲ့တဲ့ tool နဲ့ ဗားရှင်းမြှင့်ပါ။",
+    sourcesTitle: "ဒေါင်းလုဒ် ရယူနိုင်တဲ့နေရာများ",
+    sources: [
+      ["PyPI", LINKS.pypi, "ထည့်သွင်းတဲ့အခါ ရယူသုံးစွဲတဲ့ ပက်ကေ့ချ်"],
+      ["GitHub Releases", LINKS.releases, "ဗားရှင်းတစ်ခုချင်း၏ Wheel၊ Source Archive နှင့် Note များ"],
+      ["Source Code", LINKS.repo, "uv ဖြင့် Source မှ Build လုပ်ရန်"],
+    ],
+    noInstaller:
+      "LEXO တွင် .exe၊ .dmg သို့မဟုတ် AppImage မရှိပါဘူး။ အခြားနေရာတွင် တွေ့ပါက ဒီ Project မှ မဟုတ်ပါဘူး။",
+  },
+}[lang];
+
+const crumbs = [{ label: t("breadcrumb.home"), href: href(lang) }, { label: t("nav.download") }];
+const upgrades = ["lexo check-update", "uv tool upgrade lexo", "pipx upgrade lexo", "python -m pip install --upgrade lexo"];
+const v = videoCopy[lang].setup;
+---
+
+<Base
+  lang={lang}
+  title={copy.title}
+  description={copy.description}
+  section="download"
+  path="download/"
+  ogImage={`/og/${lang}/download.png`}
+  jsonLd={[
+    softwareApplication(lang, url, copy.description),
+    breadcrumbList([
+      { name: t("breadcrumb.home"), url: new URL(href(lang), site).href },
+      { name: t("nav.download"), url },
+    ]),
+  ]}
+>
+  <div class="wrap pt-10 pb-20 lg:pt-14">
+    <Breadcrumbs items={crumbs} label={t("breadcrumb.home")} />
+    <div class="top mt-6">
+      <div>
+        <h1 class="display">{copy.h1}</h1>
+        <p class="lede mt-5">{copy.lede}</p>
+        <dl class="release mt-8">
+          <div>
+            <dt class="folio">{copy.current}</dt>
+            <dd class="version" lang="en">v{VERSION}</dd>
+          </div>
+          {
+            release?.date && (
+              <div>
+                <dt class="folio">{copy.released}</dt>
+                <dd>
+                  <time datetime={release.date}>{release.date}</time>
+                </dd>
+              </div>
+            )
+          }
+          <div>
+            <dt class="folio">{copy.notes}</dt>
+            <dd>
+              <a class="link" href={href(lang, "changelog/")}>{t("nav.changelog")}</a>
+            </dd>
+          </div>
+        </dl>
+      </div>
+      <InstallTicket lang={lang} id="download-install" />
+    </div>
+
+    <section class="block" aria-labelledby="methods">
+      <h2 id="methods" class="h2">{copy.methodsTitle}</h2>
+      <div class="methods mt-8">
+        {
+          copy.methods.map((m) => (
+            <div class="method">
+              <h3 class="h3" lang="en">
+                <a class="link" href={m.link}>
+                  {m.name}
+                </a>
+              </h3>
+              <p class="mt-2 text-ink-2">{m.note}</p>
+              <Command lang={lang} command={INSTALL[m.key]} class="mt-4" />
+            </div>
+          ))
+        }
+      </div>
+      <p class="note mt-8">
+        <Icon name="lock" size={18} class="mt-1 shrink-0" />
+        <span>{copy.noInstaller}</span>
+      </p>
+    </section>
+
+    <section class="block grid gap-10 lg:grid-cols-[1fr_1.3fr]" aria-labelledby="req">
+      <h2 id="req" class="h2">{copy.reqTitle}</h2>
+      <dl class="req">
+        {
+          copy.req.map(([k, val]) => (
+            <div>
+              <dt>{k}</dt>
+              <dd>{val}</dd>
+            </div>
+          ))
+        }
+      </dl>
+    </section>
+
+    <section class="block" aria-labelledby="first">
+      <div class="grid gap-12 lg:grid-cols-[1fr_1fr] lg:gap-16">
+        <div>
+          <h2 id="first" class="h2">{copy.firstTitle}</h2>
+          <ol class="first mt-8">
+            {
+              copy.firstSteps.map((s) => (
+                <li>
+                  <p class="text-ink-2">{s.text}</p>
+                  <Command lang={lang} command={s.cmd} class="mt-3" />
+                </li>
+              ))
+            }
+          </ol>
+          <a class="btn btn-line mt-8" href={href(lang, "docs/google-cloud-setup/")}>
+            {copy.setupLink}
+            <Icon name="arrow" size={18} />
+          </a>
+        </div>
+        <Walkthrough lang={lang} id="setup" title={v.title} summary={v.summary} />
+      </div>
+    </section>
+
+    <section class="block grid gap-10 lg:grid-cols-[1fr_1.3fr]" aria-labelledby="update">
+      <div>
+        <h2 id="update" class="h2">{copy.updateTitle}</h2>
+        <p class="mt-4 text-ink-2">{copy.updateBody}</p>
+      </div>
+      <div class="grid gap-2">
+        {upgrades.map((c) => <Command lang={lang} command={c} />)}
+      </div>
+    </section>
+
+    <section class="block" aria-labelledby="sources">
+      <h2 id="sources" class="h2">{copy.sourcesTitle}</h2>
+      <ul class="sources mt-8">
+        {
+          copy.sources.map(([name, link, note]) => (
+            <li>
+              <a href={link}>
+                <span class="font-semibold text-ink">{name}</span>
+                <span class="text-ink-2">{note}</span>
+                <Icon name="external" size={18} />
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+  </div>
+</Base>
+
+<style>
+  .top {
+    display: grid;
+    gap: 3rem;
+  }
+
+  @media (min-width: 64rem) {
+    .top {
+      grid-template-columns: 1.1fr 1fr;
+      gap: 4rem;
+      align-items: end;
+    }
+  }
+
+  /* Fixed columns: a flex row would wrap differently once the mono labels' web font loads. */
+  .release {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, max-content));
+    gap: 1rem clamp(1.25rem, 4vw, 2.5rem);
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--rule);
+  }
+
+  .release dd {
+    margin-top: 0.25rem;
+    font-weight: 600;
+  }
+
+  .version {
+    font-family: var(--font-mono);
+    font-stretch: 87%;
+  }
+
+  .block {
+    margin-top: clamp(4rem, 8vw, 6.5rem);
+    padding-top: clamp(2.5rem, 4vw, 3.5rem);
+    border-top: 1px solid var(--rule);
+  }
+
+  .methods {
+    display: grid;
+    gap: 2.5rem;
+    border-top: 1.5px solid var(--ink);
+    padding-top: 1.5rem;
+  }
+
+  @media (min-width: 64rem) {
+    .methods {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 2rem;
+    }
+  }
+
+  .note {
+    display: flex;
+    gap: 0.7rem;
+    max-width: 44rem;
+    color: var(--ink-2);
+    font-size: var(--fs-sm);
+  }
+
+  .req {
+    border-top: 1.5px solid var(--ink);
+  }
+
+  .req > div {
+    display: grid;
+    gap: 0.2rem;
+    padding: 0.9rem 0;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .req dt {
+    font-weight: 620;
+  }
+
+  .req dd {
+    color: var(--ink-2);
+  }
+
+  @media (min-width: 40rem) {
+    .req > div {
+      grid-template-columns: 13rem 1fr;
+      gap: 1.5rem;
+    }
+  }
+
+  .first {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    counter-reset: step;
+    display: grid;
+    gap: 1.75rem;
+  }
+
+  .first li {
+    counter-increment: step;
+    position: relative;
+    padding-left: 2.5rem;
+  }
+
+  .first li::before {
+    content: counter(step, decimal-leading-zero);
+    position: absolute;
+    left: 0;
+    top: 0.15em;
+    font-family: var(--font-mono);
+    font-stretch: 87%;
+    font-size: var(--fs-xs);
+    color: var(--scan-ink);
+  }
+
+  :global(:lang(my)) .first li::before {
+    content: counter(step, myanmar);
+    font-family: var(--font-my);
+    font-size: var(--fs-sm);
+    top: 0.1em;
+  }
+
+  .sources {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 1.5px solid var(--ink);
+  }
+
+  .sources a {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.2rem 1.5rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--rule);
+    text-decoration: none;
+  }
+
+  .sources a :global(svg) {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    align-self: center;
+    color: var(--ink-3);
+  }
+
+  @media (min-width: 48rem) {
+    .sources a {
+      grid-template-columns: 14rem minmax(0, 1fr) auto;
+    }
+
+    .sources a :global(svg) {
+      grid-column: 3;
+      grid-row: 1;
+    }
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .sources a:hover :global(svg) {
+      color: var(--scan-ink);
+    }
+  }
+</style>

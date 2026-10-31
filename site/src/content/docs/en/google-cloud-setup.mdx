@@ -1,0 +1,93 @@
+---
+title: Google Cloud OAuth setup for Google Docs OCR
+navTitle: Google Cloud setup
+description: "The one-time setup LEXO needs before it can OCR: a Google Cloud project, the Drive API, an OAuth consent screen, a Desktop credentials.json, and lexo login."
+lang: en
+group: start
+order: 3
+updated: 2026-10-22
+---
+
+import Walkthrough from "~/components/Walkthrough.astro";
+
+LEXO uses Google Docs OCR, which is free and runs on your own Google account. Google requires every app that touches Drive to identify itself, so you bring your own OAuth client: a small `credentials.json` file from your own Google Cloud project. You do this once.
+
+Text-layer extraction and every PDF tool work without any of this.
+
+<Walkthrough
+  lang="en"
+  id="setup"
+  title="Every step below, recorded"
+  summary="Install with uv, create the project, enable the Drive API, configure consent, download credentials, sign in."
+  headingLevel={3}
+/>
+
+## 1. Create or pick a Google Cloud project
+
+Open the [Google Cloud Console](https://console.cloud.google.com/) and create a new project, or select one you already have. The name doesn't matter.
+
+You don't need billing for this. Google may show free-trial offers; you can ignore them.
+
+## 2. Enable the Google Drive API
+
+Go to **APIs & Services → Library**, search for **Google Drive API**, and click **Enable**.
+
+## 3. Configure the OAuth consent screen
+
+Go to **APIs & Services → OAuth consent screen** (Google also calls this area *Google Auth Platform*).
+
+- User type: **External**.
+- Add an app name (for example, "LEXO") and your email address.
+- Under **Test users**, add your own Google account.
+
+You don't need to submit the app for verification. It stays in **Testing** status, which is fine for personal use.
+
+## 4. Create a Desktop OAuth client
+
+Go to **APIs & Services → Credentials → Create credentials → OAuth client ID**.
+
+- Application type: **Desktop app**.
+- Click **Create**, then **Download JSON**.
+- Rename the downloaded file to `credentials.json`.
+
+Treat this file like a password for your project. Don't commit it to a repository or attach it to an issue.
+
+## 5. Put credentials.json where LEXO looks
+
+LEXO checks these places in order and uses the first match:
+
+1. The path in the `LEXO_GOOGLE_CREDENTIALS` environment variable.
+2. Your LEXO config folder. Run `lexo info` to see where it is.
+3. The current working directory.
+
+The config folder is the simplest choice for most people.
+
+## 6. Sign in
+
+```bash
+lexo login
+```
+
+In the desktop app, use **Account → Sign in with Google** instead.
+
+A browser window opens. Because your app is in Testing status, Google shows a warning that it "hasn't verified this app". That's expected: you are both the developer and the user. Continue, and approve access.
+
+LEXO stores the sign-in token in your operating system's keychain. `credentials.json` is read only during sign-in.
+
+## What LEXO can access
+
+LEXO asks for one scope, `drive.file`. It lets LEXO see and delete **only files LEXO itself created**, which are the temporary page images it uploads for OCR. It cannot read the rest of your Drive.
+
+More detail in [Privacy and authentication](/en/docs/privacy/).
+
+## Sign-in expires every 7 days or so
+
+While your OAuth app stays in Testing status, Google expires the sign-in roughly every seven days. When that happens, OCR stops with a clear "sign in again" message, and the desktop app offers to sign you in on the spot and retry. From the CLI, run `lexo login` again.
+
+## Signing out
+
+```bash
+lexo logout
+```
+
+Or **Account → Sign out** in the app. This deletes the stored token from your keychain.

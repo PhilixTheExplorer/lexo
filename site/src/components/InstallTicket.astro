@@ -1,0 +1,191 @@
+---
+import { INSTALL, type InstallMethod, LINKS, PYTHON_REQUIRES } from "~/data/site";
+import type { Lang } from "~/i18n/ui";
+import { href, useT } from "~/i18n/utils";
+import Command from "./Command.astro";
+
+interface Props {
+  lang: Lang;
+  id: string;
+  showFootnote?: boolean;
+  class?: string;
+}
+
+const { lang, id, showFootnote = true, class: className } = Astro.props;
+const t = useT(lang);
+const methods = Object.keys(INSTALL) as InstallMethod[];
+---
+
+<div class:list={["ticket", className]} data-install-ticket>
+  <div class="ticket-head">
+    <p class="folio">{t("install.title")}</p>
+    <div role="tablist" aria-label={t("install.tabs")} class="tabs">
+      {
+        methods.map((m, i) => (
+          <button
+            type="button"
+            role="tab"
+            id={`${id}-tab-${m}`}
+            aria-controls={`${id}-panel-${m}`}
+            aria-selected={i === 0 ? "true" : "false"}
+            tabindex={i === 0 ? 0 : -1}
+            data-method={m}
+            lang="en"
+          >
+            {t(`install.${m}`)}
+          </button>
+        ))
+      }
+    </div>
+  </div>
+  {
+    methods.map((m, i) => (
+      <div
+        role="tabpanel"
+        id={`${id}-panel-${m}`}
+        aria-labelledby={`${id}-tab-${m}`}
+        hidden={i !== 0}
+        data-method={m}
+      >
+        <Command lang={lang} command={INSTALL[m]} />
+      </div>
+    ))
+  }
+  <p class="then folio">{t("install.then")}</p>
+  <Command lang={lang} command="lexo gui" />
+  {
+    showFootnote && (
+      <p class="note">
+        {t("install.needs", { py: PYTHON_REQUIRES })}{" "}
+        <a class="link" href={href(lang, "docs/installation/")}>
+          {lang === "my" ? "အသေးစိတ်" : "Details"}
+        </a>
+        <span aria-hidden="true"> · </span>
+        <a class="link" href={LINKS.pypi} lang="en">
+          PyPI
+        </a>
+      </p>
+    )
+  }
+</div>
+
+<style>
+  .ticket {
+    position: relative;
+    background: var(--paper-raised);
+    border-radius: 3px;
+    padding: 1rem 1rem 1.1rem;
+    box-shadow:
+      0 0 0 1px var(--rule),
+      var(--shadow);
+  }
+
+  /* A torn tear-off edge, like the job slip handed over a copy-shop counter. */
+  .ticket::before {
+    content: "";
+    position: absolute;
+    left: 10px;
+    right: 10px;
+    top: -1px;
+    height: 6px;
+    background: radial-gradient(circle at 4px -1px, var(--paper) 3px, transparent 3.5px) 0 0 / 12px
+      6px repeat-x;
+  }
+
+  .ticket-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .ticket-head .folio {
+    margin: 0;
+  }
+
+  .tabs {
+    display: inline-flex;
+    padding: 2px;
+    gap: 2px;
+    border-radius: 3px;
+    background: var(--platen);
+  }
+
+  [role="tab"] {
+    min-height: 2rem;
+    padding: 0 0.7rem;
+    border-radius: 2px;
+    font-family: var(--font-mono);
+    font-stretch: 87%;
+    font-size: var(--fs-xs);
+    color: var(--ink-3);
+    transition:
+      background-color 160ms ease,
+      color 160ms ease;
+  }
+
+  [role="tab"][aria-selected="true"] {
+    background: var(--paper-raised);
+    color: var(--ink);
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.12);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    [role="tab"]:hover {
+      color: var(--ink);
+    }
+  }
+
+  .then {
+    margin: 0.7rem 0 0.4rem;
+  }
+
+  .note {
+    margin-top: 0.85rem;
+    font-size: var(--fs-caption);
+    color: var(--ink-3);
+  }
+</style>
+
+<script>
+  const STORAGE_KEY = "lexo-installer";
+  const tickets = [...document.querySelectorAll<HTMLElement>("[data-install-ticket]")];
+
+  function select(method: string, focus?: HTMLElement) {
+    for (const ticket of tickets) {
+      for (const tab of ticket.querySelectorAll<HTMLButtonElement>('[role="tab"]')) {
+        const on = tab.dataset.method === method;
+        tab.setAttribute("aria-selected", String(on));
+        tab.tabIndex = on ? 0 : -1;
+        if (on && focus && ticket.contains(focus)) tab.focus();
+      }
+      for (const panel of ticket.querySelectorAll<HTMLElement>('[role="tabpanel"]')) {
+        panel.hidden = panel.dataset.method !== method;
+      }
+    }
+    try {
+      localStorage.setItem(STORAGE_KEY, method);
+    } catch {}
+  }
+
+  for (const ticket of tickets) {
+    const tabs = [...ticket.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
+    tabs.forEach((tab, index) => {
+      tab.addEventListener("click", () => select(tab.dataset.method ?? "uv"));
+      tab.addEventListener("keydown", (event) => {
+        const step = event.key === "ArrowRight" ? 1 : event.key === "ArrowLeft" ? -1 : 0;
+        const edge = event.key === "Home" ? 0 : event.key === "End" ? tabs.length - 1 : -1;
+        if (!step && edge < 0) return;
+        event.preventDefault();
+        const next = tabs[edge >= 0 ? edge : (index + step + tabs.length) % tabs.length];
+        if (next) select(next.dataset.method ?? "uv", ticket);
+      });
+    });
+  }
+
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved === "pipx" || saved === "pip") select(saved);
+  } catch {}
+</script>

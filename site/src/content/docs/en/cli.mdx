@@ -1,0 +1,128 @@
+---
+title: LEXO CLI reference
+navTitle: CLI reference
+description: "Every lexo command and option: extract, ocr, ocr-batch, the pdf tools, login, logout, gui, info, and check-update, with examples."
+lang: en
+group: reference
+order: 1
+updated: 2026-10-22
+---
+
+The `lexo` command drives the same engine as the desktop app. Run `lexo --help`, or `lexo <command> --help`, for the built-in help.
+
+## Overview
+
+| Command | Purpose | Needs Google |
+|---|---|---|
+| `lexo extract <pdf>` | Extract a digital PDF's embedded text | No |
+| `lexo ocr <pdf\|image>` | OCR a scanned PDF or an image | Yes |
+| `lexo ocr-batch <files-or-folders> -o <dir>` | OCR many PDFs to one TXT each | Yes |
+| `lexo pdf info\|extract\|split\|crop\|rotate\|merge\|split-spread` | PDF operations | No |
+| `lexo login` / `lexo logout` | Sign in to or out of Google | |
+| `lexo gui` | Launch the desktop app | |
+| `lexo info` | Show the version and data folders | No |
+| `lexo check-update` | Check PyPI for a newer release | No |
+| `lexo --version` (`-V`) | Print the version | No |
+
+Page ranges (`--pages`, `-p`) accept `all`, `odd`, `even`, or ranges like `1-3,7,10-`.
+
+## lexo extract
+
+Extract the embedded text layer of a digital PDF. Works offline, without an account.
+
+```bash
+lexo extract report.pdf -o report.txt
+lexo extract report.pdf --pages 1-10 --format markdown -o report.md
+```
+
+| Option | Description |
+|---|---|
+| `--pages`, `-p` | Limit to a page range |
+| `--format`, `-f` | `text` (default), `markdown`, or `jsonl` |
+| `--out`, `-o` | Output file. Without it, text goes to standard output |
+
+If the PDF has no embedded text, LEXO says so and suggests `lexo ocr`.
+
+## lexo ocr
+
+OCR a scanned PDF or an image (PNG, JPEG, TIFF, BMP) with Google Docs OCR. Pages that already have a usable text layer are extracted instead, unless you pass `--force-ocr`.
+
+```bash
+lexo ocr scan.pdf -o scan.txt
+lexo ocr scan.pdf --pages odd --format jsonl -o scan.jsonl
+lexo ocr page.png --lang my
+```
+
+| Option | Description |
+|---|---|
+| `--pages`, `-p` | Limit to a page range |
+| `--lang` | OCR language hint. Default `my` (Burmese) |
+| `--format`, `-f` | `text` (default), `markdown`, or `jsonl` |
+| `--out`, `-o` | Output file. Default: standard output |
+| `--force-ocr` | OCR every page, even pages with a text layer |
+
+Progress (`page N done` or `page N failed: …`) is printed to standard error. If any page fails, the command lists the failed pages and exits with status 1.
+
+## lexo ocr-batch
+
+OCR multiple PDFs and write one UTF-8 `.txt` per PDF. Accepts PDF files and folders; a folder contributes every PDF directly inside it.
+
+```bash
+lexo ocr-batch ./pdfs --out-dir ./txt
+lexo ocr-batch a.pdf b.pdf ./more --out-dir ./txt --overwrite
+```
+
+| Option | Description |
+|---|---|
+| `--out-dir`, `-o` | Output folder (required) |
+| `--lang` | OCR language hint. Default `my` |
+| `--force-ocr` / `--no-force-ocr` | OCR every page (default), or keep usable embedded text |
+| `--overwrite` | Replace existing `.txt` files instead of skipping them |
+
+See [Batch OCR](/en/docs/batch-ocr/).
+
+## lexo pdf
+
+All PDF commands run locally. Details and examples are in [PDF tools](/en/docs/pdf-tools/).
+
+| Command | Usage |
+|---|---|
+| `info` | `lexo pdf info book.pdf` |
+| `extract` | `lexo pdf extract book.pdf --pages "1-3,7" -o out.pdf` |
+| `split` | `lexo pdf split book.pdf --every 10` or `--at 4,7`, optional `--out-dir` |
+| `crop` | `lexo pdf crop book.pdf --top 8 --bottom 8 -o out.pdf`, also `--left`, `--right`, `--pages` |
+| `rotate` | `lexo pdf rotate book.pdf --degrees 90 -o out.pdf`, optional `--pages` |
+| `merge` | `lexo pdf merge a.pdf b.pdf -o out.pdf` |
+| `split-spread` | `lexo pdf split-spread scans.pdf -o out.pdf`, optional `--ratio 0.5` |
+
+Crop values are percentages of the page per edge.
+
+## lexo login and lexo logout
+
+```bash
+lexo login
+lexo logout
+```
+
+`login` opens a browser for Google's consent screen and saves the token in your OS keychain. It needs `credentials.json` from the [Google Cloud setup](/en/docs/google-cloud-setup/). `logout` deletes the stored token.
+
+## lexo gui
+
+```bash
+lexo gui
+```
+
+Opens the desktop app. See the [desktop app guide](/en/docs/desktop-app/).
+
+## lexo info and lexo check-update
+
+```bash
+lexo info
+lexo check-update
+```
+
+`info` prints the version and the data and config folders. `check-update` compares your version with the latest on PyPI and prints how to upgrade.
+
+## Exit status
+
+Commands exit with `0` on success and `1` on errors, including OCR runs where some pages failed and batch runs where some files failed.

@@ -277,6 +277,11 @@ uv run pytest
 
 Design notes live in [docs/ARCHITECTURE.md](https://github.com/PhilixTheExplorer/lexo/blob/main/docs/ARCHITECTURE.md).
 
+The product website lives in [`site/`](https://github.com/PhilixTheExplorer/lexo/tree/main/site), a
+static Astro site. See its
+[README](https://github.com/PhilixTheExplorer/lexo/blob/main/site/README.md) for local
+development.
+
 ## Contributing
 
 Bug reports, documentation fixes, and focused pull requests are welcome. Please

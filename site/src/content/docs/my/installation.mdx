@@ -1,0 +1,95 @@
+---
+title: uv၊ pipx သို့မဟုတ် pip ဖြင့် LEXO ကို ထည့်သွင်းခြင်း
+navTitle: ထည့်သွင်းခြင်း
+description: Windows၊ macOS သို့မဟုတ် Linux တွင် PyPI မှ LEXO Desktop app နှင့် CLI ကို ထည့်သွင်းခြင်း၊ စစ်ဆေးခြင်းနှင့် ဗားရှင်းမြှင့်ခြင်း။
+lang: my
+group: start
+order: 2
+updated: 2026-10-22
+---
+
+LEXO ကို [PyPI](https://pypi.org/project/lexo/) မှ Python package အဖြစ် ရယူနိုင်ပါတယ်။ တစ်ကြိမ် ထည့်သွင်းရုံနဲ့ `lexo` CLI နဲ့ Desktop app (`lexo gui`) နှစ်မျိုးလုံး ရရှိပါတယ်။ Qt၊ PDF engine နဲ့ မြန်မာဖောင့်အပါအဝင် လိုအပ်တဲ့ အစိတ်အပိုင်းတွေ ပါဝင်ပြီးသားဖြစ်လို့ သီးခြား ထပ်ထည့်ဖို့ မလိုပါဘူး။
+
+သီးခြား installer (`.exe`၊ `.dmg` သို့မဟုတ် `.AppImage`) မရှိပါဘူး။ Python package ထည့်သွင်းတဲ့ tool တစ်ခုခုကို သုံးရပါမယ်။
+
+## လိုအပ်ချက်များ
+
+- **Python 3.11၊ 3.12 သို့မဟုတ် 3.13** - LEXO ၏ CI တွင် ဒီ ဗားရှင်းများကို Windows၊ macOS နှင့် Linux ပေါ်တွင် စမ်းသပ်ထားပါတယ်။
+- Qt Desktop app အတွက် လုံလောက်တဲ့ disk နေရာ လိုပါတယ်။ ပါဝင်တဲ့ အစိတ်အပိုင်းတွေထဲမှာ PySide6 က နေရာအများဆုံး ယူပါတယ်။
+- ထည့်သွင်းချိန်နှင့် နောက်ပိုင်း Google Docs OCR သုံးချိန်တွင်သာ အင်တာနက် လိုပါတယ်။
+
+Python မရှိသေးရင် [uv](https://docs.astral.sh/uv/) ဖြင့် Python ကိုပါ ထည့်သွင်းစီမံနိုင်ပါတယ်။
+
+## အကြံပြုထားတဲ့နည်း - uv
+
+[uv](https://docs.astral.sh/uv/) က LEXO ကို သီးခြား Tool တစ်ခုအဖြစ် ထည့်သွင်းပြီး `lexo` ကို PATH ထဲ ထည့်ပေးပါတယ် -
+
+```bash
+uv tool install lexo
+```
+
+## pipx ဖြင့်
+
+[pipx](https://pipx.pypa.io/) ကို သုံးနေပြီးသားဆိုရင် အလားတူ အလုပ်လုပ်ပါတယ် -
+
+```bash
+pipx install lexo
+```
+
+## pip ဖြင့်
+
+ပုံမှန် Python environment မှာလည်း ထည့်သွင်းနိုင်ပါတယ်။ အခြား Python package တွေနဲ့ မရောစေဖို့ သီးခြား virtual environment သုံးနိုင်ပါတယ် -
+
+```bash
+python -m pip install lexo
+```
+
+## ထည့်သွင်းမှု အောင်မြင်မအောင်မြင် စစ်ဆေးခြင်း
+
+```bash
+lexo --version
+lexo info
+```
+
+`lexo info` က လက်ရှိဗားရှင်းနဲ့ LEXO ရဲ့ Data folder၊ Config folder တည်နေရာတွေကို ပြပါတယ်။ [Google Cloud ပြင်ဆင်တဲ့အခါ](/my/docs/google-cloud-setup/) Config folder ကို အသုံးပြုရပါမယ်။
+
+ထို့နောက် Desktop app ကို ဖွင့်ပါ -
+
+```bash
+lexo gui
+```
+
+## ဗားရှင်းမြှင့်ခြင်း
+
+PyPI တွင် ဗားရှင်းအသစ် ရှိမရှိ စစ်ဆေးရန် -
+
+```bash
+lexo check-update
+```
+
+Desktop app မှာ **Help → Check for Updates** ၌လည်း စစ်ဆေးနိုင်ပါတယ်။ ဗားရှင်းမြှင့်ရန် -
+
+```bash
+uv tool upgrade lexo
+# or
+pipx upgrade lexo
+# or
+python -m pip install --upgrade lexo
+```
+
+ပြောင်းလဲမှုများကို [ပြောင်းလဲမှုမှတ်တမ်း](/my/changelog/) တွင် ကြည့်ပါ။
+
+## ဖယ်ရှားခြင်း
+
+```bash
+uv tool uninstall lexo
+# or
+pipx uninstall lexo
+```
+
+Google အကောင့်ဝင်ထားရင် OS keychain ထဲက token ကို ဖျက်ဖို့ `lexo logout` ကို အရင်လုပ်ဆောင်ပါ။
+
+## နောက်တစ်ဆင့်
+
+- အကောင့်မလိုဘဲ - စာသားပါ PDF ပေါ်တွင် `lexo extract` သို့မဟုတ် [PDF ကိရိယာများ](/my/docs/pdf-tools/) ကို စမ်းကြည့်ပါ။
+- စကင်ဖိုင်များအတွက် - [Google Docs OCR ကို ပြင်ဆင်ပါ](/my/docs/google-cloud-setup/)။

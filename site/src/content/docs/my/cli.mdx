@@ -1,0 +1,128 @@
+---
+title: LEXO CLI အညွှန်း
+navTitle: CLI အညွှန်း
+description: lexo command များနဲ့ option များကို ဥပမာတွေနဲ့ လေ့လာရန်။ extract၊ ocr၊ ocr-batch၊ PDF ကိရိယာများ၊ login၊ logout၊ gui၊ info နဲ့ check-update အသုံးပြုနည်း။
+lang: my
+group: reference
+order: 1
+updated: 2026-10-22
+---
+
+`lexo` Command က Desktop app နှင့် အခြေခံစနစ်တစ်ခုတည်းကို သုံးပါတယ်။ `lexo --help` သို့မဟုတ် `lexo <command> --help` ဖြင့် အကူအညီကို ကြည့်ပါ။
+
+## အကျဉ်းချုပ်
+
+| Command | လုပ်ဆောင်ချက် | Google လိုသလား |
+|---|---|---|
+| `lexo extract <pdf>` | PDF ထဲမှာ ပါပြီးသား စာသားကို ထုတ်ယူခြင်း | မလို |
+| `lexo ocr <pdf\|image>` | စကင် PDF သို့မဟုတ် ပုံကို OCR လုပ်ခြင်း | လို |
+| `lexo ocr-batch <files-or-folders> -o <dir>` | PDF အများအပြားကို OCR လုပ်ပြီး TXT ဖိုင်များအဖြစ် သိမ်းခြင်း | လို |
+| `lexo pdf info\|extract\|split\|crop\|rotate\|merge\|split-spread` | PDF လုပ်ဆောင်ချက်များ | မလို |
+| `lexo login` / `lexo logout` | Google အကောင့်ဝင်ခြင်း / ထွက်ခြင်း | |
+| `lexo gui` | Desktop app ဖွင့်ခြင်း | |
+| `lexo info` | ဗားရှင်းနှင့် Data folder များ ပြသခြင်း | မလို |
+| `lexo check-update` | PyPI မှာ ဗားရှင်းအသစ် ရှိမရှိ စစ်ဆေးခြင်း | မလို |
+| `lexo --version` (`-V`) | ဗားရှင်းပြသခြင်း | မလို |
+
+စာမျက်နှာ အပိုင်းအခြား (`--pages`၊ `-p`) တွင် `all`၊ `odd`၊ `even` သို့မဟုတ် `1-3,7,10-` ကဲ့သို့ ပေးနိုင်ပါတယ်။
+
+## lexo extract
+
+PDF ထဲမှာ ပါပြီးသား Text layer မှ စာသားကို ထုတ်ယူပါတယ်။ အင်တာနက်နဲ့ အကောင့် မလိုပါဘူး။
+
+```bash
+lexo extract report.pdf -o report.txt
+lexo extract report.pdf --pages 1-10 --format markdown -o report.md
+```
+
+| ရွေးချယ်စရာ | ရှင်းလင်းချက် |
+|---|---|
+| `--pages`, `-p` | စာမျက်နှာ အပိုင်းအခြား ကန့်သတ်ရန် |
+| `--format`, `-f` | `text` (မူလ)၊ `markdown` သို့မဟုတ် `jsonl` |
+| `--out`, `-o` | Output ဖိုင်။ မပေးရင် Standard Output သို့ ထုတ်ပါတယ် |
+
+PDF ထဲမှာ Text layer မပါရင် LEXO က အသိပေးပြီး `lexo ocr` ကို သုံးဖို့ အကြံပြုပါတယ်။
+
+## lexo ocr
+
+စကင် PDF သို့မဟုတ် ပုံ (PNG၊ JPEG၊ TIFF၊ BMP) ကို Google Docs OCR ဖြင့် OCR လုပ်ပါတယ်။ `--force-ocr` မပေးရင် အသုံးဝင်တဲ့ Text layer ပါပြီးသား စာမျက်နှာများကို OCR မလုပ်ဘဲ ထုတ်ယူပါတယ်။
+
+```bash
+lexo ocr scan.pdf -o scan.txt
+lexo ocr scan.pdf --pages odd --format jsonl -o scan.jsonl
+lexo ocr page.png --lang my
+```
+
+| ရွေးချယ်စရာ | ရှင်းလင်းချက် |
+|---|---|
+| `--pages`, `-p` | စာမျက်နှာ အပိုင်းအခြား ကန့်သတ်ရန် |
+| `--lang` | OCR ဘာသာစကား သတ်မှတ်ချက်။ မူလ `my` (မြန်မာ) |
+| `--format`, `-f` | `text` (မူလ)၊ `markdown` သို့မဟုတ် `jsonl` |
+| `--out`, `-o` | Output ဖိုင်။ မူလ - Standard Output |
+| `--force-ocr` | Text layer ပါတဲ့ စာမျက်နှာများကိုပါ OCR လုပ်ရန် |
+
+လုပ်ဆောင်မှု အခြေအနေကို `page N done` သို့မဟုတ် `page N failed: …` အဖြစ် standard error မှာ ပြပါတယ်။ စာမျက်နှာတစ်ခုခု မအောင်မြင်ရင် အဲဒီစာမျက်နှာတွေကို ဖော်ပြပြီး exit status `1` ကို ပြန်ပေးပါတယ်။
+
+## lexo ocr-batch
+
+PDF အများအပြားကို OCR လုပ်ပြီး တစ်ဖိုင်လျှင် UTF-8 `.txt` ဖိုင်တစ်ခု သိမ်းပေးပါတယ်။ PDF ဖိုင်နဲ့ Folder တွေကို ရောပေးနိုင်ပါတယ်။ Folder ရွေးထားရင် အဲဒီ Folder ထဲက PDF အားလုံးကို ယူပြီး Subfolder တွေထဲက ဖိုင်တွေကိုတော့ မယူပါဘူး။
+
+```bash
+lexo ocr-batch ./pdfs --out-dir ./txt
+lexo ocr-batch a.pdf b.pdf ./more --out-dir ./txt --overwrite
+```
+
+| ရွေးချယ်စရာ | ရှင်းလင်းချက် |
+|---|---|
+| `--out-dir`, `-o` | ရလဒ်ဖိုင် သိမ်းမယ့် Folder (မဖြစ်မနေ) |
+| `--lang` | OCR ဘာသာစကား သတ်မှတ်ချက်။ မူလ `my` |
+| `--force-ocr` / `--no-force-ocr` | စာမျက်နှာတိုင်း OCR လုပ်ရန် (မူလ) သို့မဟုတ် PDF ထဲ ပါပြီးသား အသုံးဝင်တဲ့ စာသားကို ထိန်းရန် |
+| `--overwrite` | ရှိပြီးသား `.txt` ဖိုင်များကို မကျော်ဘဲ အစားထိုးရန် |
+
+[Batch OCR](/my/docs/batch-ocr/) တွင် ကြည့်ပါ။
+
+## lexo pdf
+
+PDF Command အားလုံးက မိမိကွန်ပျူတာထဲမှာသာ အလုပ်လုပ်ပါတယ်။ အသေးစိတ်နှင့် ဥပမာများကို [PDF ကိရိယာများ](/my/docs/pdf-tools/) တွင် ကြည့်ပါ။
+
+| Command | အသုံးပြုပုံ |
+|---|---|
+| `info` | `lexo pdf info book.pdf` |
+| `extract` | `lexo pdf extract book.pdf --pages "1-3,7" -o out.pdf` |
+| `split` | `lexo pdf split book.pdf --every 10` သို့မဟုတ် `--at 4,7`၊ `--out-dir` ပေးနိုင် |
+| `crop` | `lexo pdf crop book.pdf --top 8 --bottom 8 -o out.pdf`၊ `--left`၊ `--right`၊ `--pages` လည်း ပေးနိုင် |
+| `rotate` | `lexo pdf rotate book.pdf --degrees 90 -o out.pdf`၊ `--pages` ပေးနိုင် |
+| `merge` | `lexo pdf merge a.pdf b.pdf -o out.pdf` |
+| `split-spread` | `lexo pdf split-spread scans.pdf -o out.pdf`၊ `--ratio 0.5` ပေးနိုင် |
+
+Crop တန်ဖိုးတွေက စာမျက်နှာအနားတစ်ဖက်စီမှ ဖြတ်တောက်မယ့် ပမာဏကို ရာခိုင်နှုန်းဖြင့် သတ်မှတ်တာ ဖြစ်ပါတယ်။
+
+## lexo login နှင့် lexo logout
+
+```bash
+lexo login
+lexo logout
+```
+
+`login` က Google ခွင့်ပြုချက်ပေးတဲ့ စာမျက်နှာကို ဘရောက်ဇာမှာ ဖွင့်ပေးပြီး token ကို OS keychain မှာ သိမ်းပေးပါတယ်။ [Google Cloud ပြင်ဆင်တဲ့အခါ](/my/docs/google-cloud-setup/) ရယူထားတဲ့ `credentials.json` ဖိုင် လိုပါတယ်။ `logout` က သိမ်းထားတဲ့ token ကို ဖျက်ပေးပါတယ်။
+
+## lexo gui
+
+```bash
+lexo gui
+```
+
+Desktop app ကို ဖွင့်ပါတယ်။ [Desktop app လမ်းညွှန်](/my/docs/desktop-app/) တွင် ကြည့်ပါ။
+
+## lexo info နှင့် lexo check-update
+
+```bash
+lexo info
+lexo check-update
+```
+
+`info` က ဗားရှင်းနှင့် Data၊ Config folder များကို ပြပါတယ်။ `check-update` က မိမိသုံးနေတဲ့ ဗားရှင်းကို PyPI ရှိ နောက်ဆုံးဗားရှင်းနှင့် နှိုင်းယှဉ်ပြီး ဗားရှင်းမြှင့်နည်းကို ပြပါတယ်။
+
+## Exit status
+
+Command အောင်မြင်ရင် `0`၊ အမှားဖြစ်ရင် `1` ကို ပြန်ပေးပါတယ်။ OCR လုပ်ရာမှာ စာမျက်နှာအချို့ မအောင်မြင်တာ၊ Batch OCR မှာ ဖိုင်အချို့ မအောင်မြင်တာမျိုး ဖြစ်ရင်လည်း `1` ကို ပြန်ပေးပါတယ်။

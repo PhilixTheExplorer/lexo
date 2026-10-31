@@ -48,7 +48,8 @@ dependencies = [
 lexo = "lexo.cli.app:main"
 
 [project.urls]
-Homepage = "https://github.com/PhilixTheExplorer/lexo"
+Homepage = "https://lexo.philix.dev"
+Documentation = "https://lexo.philix.dev/en/docs/"
 Repository = "https://github.com/PhilixTheExplorer/lexo"
 Changelog = "https://github.com/PhilixTheExplorer/lexo/blob/main/CHANGELOG.md"
 Releases = "https://github.com/PhilixTheExplorer/lexo/releases"

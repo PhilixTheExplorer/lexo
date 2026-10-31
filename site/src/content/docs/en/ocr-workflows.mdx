@@ -1,0 +1,112 @@
+---
+title: OCR workflows for Burmese documents
+navTitle: OCR workflows
+description: When to use text-layer extraction or Google Docs OCR, how LEXO routes pages, and how to handle scans, Win Innwa fonts, Zawgyi, and other languages.
+lang: en
+group: guides
+order: 2
+updated: 2026-10-22
+---
+
+import Shot from "~/components/Shot.astro";
+import Walkthrough from "~/components/Walkthrough.astro";
+import legacy from "~/assets/screens/legacy-font-extract.webp";
+
+Every page you give LEXO is one of two kinds: it either carries real text, or it is a picture of text. LEXO handles each differently.
+
+## Text layer vs Google Docs OCR
+
+| | Text layer | Google Docs OCR |
+|---|---|---|
+| Works on | Digital PDFs | Scanned PDFs, photos, images |
+| Speed | Instant | Depends on your network and Google |
+| Network | None | Uploads page images to your Drive |
+| Account | None | Your Google account |
+| Accuracy | Exactly what the PDF stores | Google's recognition of the page image |
+
+**Rule of thumb:** try the text layer first. If you get nothing, or text that doesn't look like the page, use Google Docs OCR.
+
+## How smart routing works
+
+From the CLI, `lexo ocr` routes page by page. Pages with a usable text layer are extracted directly; only pages without one are rendered (at 300 DPI) and sent to OCR. A mixed document, say a digital report with a few scanned appendices, gets the best of both.
+
+Add `--force-ocr` to OCR every page regardless:
+
+```bash
+lexo ocr report.pdf --force-ocr -o report.txt
+```
+
+In the desktop app, the mode you pick applies to the pages you run: **Google Docs OCR** always re-reads the selected pages, and **Text layer** extracts them.
+
+## Scanned PDFs and images
+
+1. Open the file, or several images with **Select Image Set**.
+2. Crop running heads and page numbers off in the **Edit** tab, and split two-up spreads in the **PDF** tab. Clean pages give cleaner text.
+3. Choose **Google Docs OCR** and click **Run**.
+4. Read each page beside its image and fix what needs fixing.
+5. Export.
+
+<Walkthrough
+  lang="en"
+  id="scanned"
+  title="Scanned Burmese PDF, start to finish"
+  summary="Split spreads, crop margins, run Google Docs OCR, review, and export plain text."
+  headingLevel={3}
+/>
+
+From the CLI:
+
+```bash
+lexo login
+lexo ocr scan.pdf --lang my -o scan.txt
+```
+
+Long runs are resilient: each page is retried automatically on transient failures, and if some still fail you can re-run just those (**Retry Failed Pages** in the app). OCR time depends on your connection and on Google Drive's response time.
+
+## Legacy-font PDFs (Win Innwa, Win Myanmar)
+
+Before Unicode was common, Burmese documents were often typed in fonts such as Win Innwa or Win Myanmar. These fonts draw Burmese shapes on top of **ASCII letters**. The PDF stores English characters; only the font makes them look Burmese.
+
+Text-layer extraction on such a file returns those ASCII characters. That's technically what the PDF contains, but it isn't usable Burmese text.
+
+<Shot
+  src={legacy}
+  alt="LEXO text pane showing ASCII characters extracted from a Win Innwa Burmese PDF."
+  caption="Text layer on a Win Innwa PDF: Latin letters where Burmese should be."
+/>
+
+**What to do:** switch to **Google Docs OCR**. It reads the rendered page visually and returns Myanmar Unicode. Alternatively, extract the raw ASCII and run it through a Win-to-Unicode font converter; OCR skips that step.
+
+<Walkthrough
+  lang="en"
+  id="legacy"
+  title="Recognising a legacy-font PDF and switching to OCR"
+  summary="Spot ASCII where Burmese should be, switch modes, get Unicode."
+  headingLevel={3}
+/>
+
+Some older Burmese PDFs store text as Private Use Area glyph IDs instead. LEXO detects that kind of layer as unusable and OCRs those pages automatically.
+
+## Zawgyi-encoded text
+
+Zawgyi is a widely used legacy encoding that reuses Myanmar Unicode code points with different meanings. LEXO does not convert Zawgyi. If text extracted from a PDF's text layer renders as scrambled Burmese, the layer may be Zawgyi: run Google Docs OCR on those pages to get standard Unicode from the page image.
+
+## OCR language
+
+The language hint defaults to Burmese (`my`). For other languages, pass a different hint:
+
+```bash
+lexo ocr scan.pdf --lang th -o scan.txt
+```
+
+Or set `LEXO_OCR_LANGUAGE` (see [Configuration](/en/docs/configuration/)). Other non-Latin scripts can work through Google Docs OCR with the right hint, but LEXO is tuned and tested for Burmese.
+
+## What LEXO does to the text
+
+After extraction or OCR, LEXO:
+
+- normalizes the text to Unicode **NFC**, so identical-looking text is stored identically;
+- keeps **zero-width spaces** (U+200B), which mark Burmese word and line breaks;
+- drops other control and invisible format characters, collapses runs of spaces, and trims trailing whitespace.
+
+It does not spell-check, reflow paragraphs, or detect layout such as columns and tables.

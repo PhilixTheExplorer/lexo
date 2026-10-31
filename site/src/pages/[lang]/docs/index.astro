@@ -1,0 +1,147 @@
+---
+import Breadcrumbs from "~/components/Breadcrumbs.astro";
+import Icon from "~/components/Icon.astro";
+import type { Lang } from "~/i18n/ui";
+import { href, staticLangPaths, useT } from "~/i18n/utils";
+import Base from "~/layouts/Base.astro";
+import { docSlug, docsFor, GROUP_LABELS, GROUPS } from "~/lib/docs";
+import { breadcrumbList } from "~/lib/schema";
+
+export const getStaticPaths = staticLangPaths;
+
+const lang = Astro.params.lang as Lang;
+const t = useT(lang);
+const docs = await docsFor(lang);
+const site = Astro.site ?? new URL("https://lexo.philix.dev");
+
+const copy = {
+  en: {
+    title: "LEXO documentation",
+    description:
+      "Install LEXO, set up Google Docs OCR, and learn the desktop app, OCR workflows for Burmese, PDF tools, batch OCR, the CLI, and export formats.",
+    lede: "Everything from the first install to scripting batch runs. New here? Start with the first three pages in order.",
+  },
+  my: {
+    title: "LEXO လမ်းညွှန်",
+    description:
+      "LEXO ကို ထည့်သွင်းခြင်း၊ Google Docs OCR ကြိုတင်ပြင်ဆင်ခြင်းနှင့် Desktop app၊ မြန်မာ OCR လုပ်ငန်းစဉ်၊ PDF ကိရိယာ၊ Batch OCR၊ CLI နှင့် သိမ်းဆည်းနိုင်တဲ့ File format တွေကို လေ့လာရန်။",
+    lede: "LEXO ထည့်သွင်းနည်းကနေ Batch OCR ကို script နဲ့ လုပ်ဆောင်နည်းအထိ လေ့လာနိုင်ပါတယ်။ စတင်အသုံးပြုသူဆိုရင် ပထမလမ်းညွှန် သုံးခုကို အစဉ်လိုက် ဖတ်ပါ။",
+  },
+}[lang];
+
+const groups = GROUPS.map((group) => ({
+  group,
+  label: GROUP_LABELS[lang][group],
+  items: docs.filter((d) => d.data.group === group),
+})).filter((g) => g.items.length);
+const crumbs = [{ label: t("breadcrumb.home"), href: href(lang) }, { label: t("nav.docs") }];
+---
+
+<Base
+  lang={lang}
+  title={copy.title}
+  description={copy.description}
+  section="docs"
+  path="docs/"
+  ogImage={`/og/${lang}/docs.png`}
+  jsonLd={[
+    breadcrumbList([
+      { name: t("breadcrumb.home"), url: new URL(href(lang), site).href },
+      { name: t("nav.docs"), url: new URL(href(lang, "docs/"), site).href },
+    ]),
+  ]}
+>
+  <div class="wrap pt-10 pb-24 lg:pt-14">
+    <Breadcrumbs items={crumbs} label={t("breadcrumb.home")} />
+    <h1 class="display mt-6 max-w-4xl">{copy.title}</h1>
+    <p class="lede mt-5">{copy.lede}</p>
+
+    <div class="mt-14 grid gap-14">
+      {
+        groups.map((g) => (
+          <section aria-labelledby={`g-${g.group}`}>
+            <h2 id={`g-${g.group}`} class="folio mb-3">
+              {g.label}
+            </h2>
+            <ul class="doc-list">
+              {g.items.map((doc) => (
+                <li>
+                  <a href={href(lang, `docs/${docSlug(doc)}/`)}>
+                    <span class="doc-title">{doc.data.navTitle ?? doc.data.title}</span>
+                    <span class="doc-desc">{doc.data.description}</span>
+                    <Icon name="arrow" size={20} class="doc-arrow" />
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))
+      }
+    </div>
+  </div>
+</Base>
+
+<style>
+  .doc-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 1.5px solid var(--ink);
+  }
+
+  .doc-list a {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.25rem 1.5rem;
+    padding: 1.1rem 0;
+    border-bottom: 1px solid var(--rule);
+    text-decoration: none;
+  }
+
+  .doc-title {
+    font-size: var(--fs-md);
+    font-weight: 650;
+    font-stretch: 104%;
+    color: var(--ink);
+  }
+
+  .doc-desc {
+    grid-column: 1;
+    color: var(--ink-2);
+    font-size: var(--fs-sm);
+    max-width: 52rem;
+  }
+
+  .doc-list :global(.doc-arrow) {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    align-self: center;
+    color: var(--ink-3);
+    transition:
+      transform 220ms var(--ease-out),
+      color 160ms ease;
+  }
+
+  @media (min-width: 56rem) {
+    .doc-list a {
+      grid-template-columns: 18rem minmax(0, 1fr) auto;
+    }
+
+    .doc-desc {
+      grid-column: 2;
+      grid-row: 1;
+    }
+
+    .doc-list :global(.doc-arrow) {
+      grid-column: 3;
+      grid-row: 1;
+    }
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .doc-list a:hover :global(.doc-arrow) {
+      transform: translateX(4px);
+      color: var(--scan-ink);
+    }
+  }
+</style>

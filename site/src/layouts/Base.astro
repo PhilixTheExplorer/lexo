@@ -1,0 +1,149 @@
+---
+import padaukMyanmar from "@fontsource/padauk/files/padauk-myanmar-400-normal.woff2?url";
+import archivoLatin from "@fontsource-variable/archivo/files/archivo-latin-standard-normal.woff2?url";
+import Footer from "~/components/Footer.astro";
+import Header from "~/components/Header.astro";
+import { DEFAULT_LANG, LANG_META, type Lang, LOCALES, type SectionKey } from "~/i18n/ui";
+import { href } from "~/i18n/utils";
+import "~/styles/global.css";
+
+interface Props {
+  lang: Lang;
+  title: string;
+  description: string;
+  section: SectionKey;
+  /** Path inside the locale, e.g. "features/" or "docs/installation/". */
+  path: string;
+  pageLabel?: string;
+  /** Locales this page exists in. Defaults to every locale with the same path. */
+  alternates?: Partial<Record<Lang, string>>;
+  ogImage?: string;
+  ogType?: "website" | "article";
+  jsonLd?: Record<string, unknown>[];
+  article?: { published: Date; modified?: Date | undefined };
+  noindex?: boolean;
+}
+
+const {
+  lang,
+  title,
+  description,
+  section,
+  path,
+  pageLabel,
+  alternates = Object.fromEntries(LOCALES.map((l) => [l, path])),
+  ogType = "website",
+  jsonLd = [],
+  article,
+  noindex = false,
+} = Astro.props;
+
+const site = Astro.site ?? new URL("https://lexo.philix.dev");
+const canonical = new URL(href(lang, path), site).href;
+const alternateLinks = LOCALES.filter((l) => alternates[l] !== undefined).map((l) => ({
+  lang: l,
+  href: new URL(href(l, alternates[l]), site).href,
+}));
+const xDefault = alternateLinks.find((a) => a.lang === DEFAULT_LANG) ?? alternateLinks[0];
+const other: Lang = lang === "en" ? "my" : "en";
+const altPath = alternates[other];
+const altHref = altPath === undefined ? undefined : href(other, altPath);
+
+const ogPath = Astro.props.ogImage ?? `/og/${lang}/default.png`;
+const ogImage = new URL(ogPath, site).href;
+const suffixed = `${title} · LEXO`;
+const fullTitle =
+  section === "home" || title.includes("LEXO") || suffixed.length > 65 ? title : suffixed;
+---
+
+<!doctype html>
+<html lang={lang} dir="ltr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    {!noindex && <link rel="canonical" href={canonical} />}
+    {
+      alternateLinks.length > 1 &&
+        alternateLinks.map((a) => <link rel="alternate" hreflang={a.lang} href={a.href} />)
+    }
+    {
+      alternateLinks.length > 1 && xDefault && (
+        <link rel="alternate" hreflang="x-default" href={xDefault.href} />
+      )
+    }
+    {noindex && <meta name="robots" content="noindex, follow" />}
+
+    <meta property="og:type" content={ogType} />
+    <meta property="og:site_name" content="LEXO" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={title} />
+    <meta property="og:locale" content={LANG_META[lang].ogLocale} />
+    {
+      alternateLinks
+        .filter((a) => a.lang !== lang)
+        .map((a) => <meta property="og:locale:alternate" content={LANG_META[a.lang].ogLocale} />)
+    }
+    {
+      article && (
+        <meta property="article:published_time" content={article.published.toISOString()} />
+      )
+    }
+    {
+      article?.modified && (
+        <meta property="article:modified_time" content={article.modified.toISOString()} />
+      )
+    }
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+
+    <meta name="theme-color" content="#f6f7f9" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#121315" media="(prefers-color-scheme: dark)" />
+    <link rel="icon" href="/favicon.ico" sizes="32x32 48x48" />
+    <link rel="icon" href="/favicon-32.png" type="image/png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title={lang === "my" ? "LEXO ဆောင်းပါးများ" : "LEXO articles"}
+      href={href(lang, "blog/rss.xml")}
+    />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <link rel="preload" href={archivoLatin} as="font" type="font/woff2" crossorigin />
+    {lang === "my" && <link rel="preload" href={padaukMyanmar} as="font" type="font/woff2" crossorigin />}
+
+    <script is:inline>
+      (() => {
+        let theme = null;
+        try {
+          theme = localStorage.getItem("lexo-theme");
+        } catch {}
+        if (theme !== "light" && theme !== "dark") {
+          theme = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        }
+        document.documentElement.dataset.theme = theme;
+      })();
+    </script>
+    {
+      jsonLd.map((data) => (
+        <script is:inline type="application/ld+json" set:html={JSON.stringify(data)} />
+      ))
+    }
+    <slot name="head" />
+  </head>
+  <body class="flex min-h-dvh flex-col">
+    <Header lang={lang} section={section} altHref={altHref} pageLabel={pageLabel} />
+    <main id="main" tabindex="-1" class="flex-1 outline-none">
+      <slot />
+    </main>
+    <Footer lang={lang} />
+  </body>
+</html>

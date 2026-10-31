@@ -1,0 +1,137 @@
+---
+title: Desktop app guide
+navTitle: Desktop app
+description: "A tour of the LEXO desktop app: the pages strip, preview, text pane, and Tune panel, plus editing, running OCR, proofreading, exporting, and keyboard shortcuts."
+lang: en
+group: guides
+order: 1
+updated: 2026-10-22
+---
+
+import Shot from "~/components/Shot.astro";
+import welcome from "~/assets/screens/app-welcome.webp";
+import ocrResult from "~/assets/screens/app-ocr-result.webp";
+import crop from "~/assets/screens/app-crop-editor.webp";
+import spread from "~/assets/screens/app-split-spread.webp";
+import running from "~/assets/screens/app-ocr-running.webp";
+
+Start the app with:
+
+```bash
+lexo gui
+```
+
+The desktop app follows one flow: **open → tune → run → proofread → export**. It drives the same engine as the CLI, so results match.
+
+<Shot
+  src={welcome}
+  alt="LEXO welcome screen with buttons to import a PDF or image, select an image set, or batch OCR PDFs."
+  caption="The welcome screen. Its How it works list is the whole workflow in four lines."
+/>
+
+## Opening documents
+
+- **Import PDF or Image** (`Ctrl+O`) opens a PDF or a single image.
+- **Select Image Set** (`Ctrl+Shift+O`) opens several images as one document, one page per image. PNG, JPEG, TIFF, and BMP are supported.
+- **Batch OCR PDFs** (`Ctrl+Alt+O`) runs OCR across many PDFs without opening them. See [Batch OCR](/en/docs/batch-ocr/).
+
+Opening a file copies it to a temporary working copy. Every edit applies to that copy. Your original file is untouched until you choose **File → Save** or **Save As**.
+
+## The window
+
+<Shot
+  src={ocrResult}
+  alt="LEXO main window: pages strip on the left, page preview, text pane, and Tune panel on the right."
+  caption="Pages strip, preview, text pane, and the Tune panel with its Run, Edit, Pages, and PDF tabs."
+/>
+
+- **Pages strip** (left): a thumbnail for every page. Badges show status: blue for text-layer pages, green for OCR'd pages, amber while working, red for failures. Select several thumbnails with `Ctrl`- or `Shift`-click.
+- **Preview** (centre): the current page. Scroll over it to move between pages; hold `Ctrl` and scroll to zoom, then drag to pan. **Fit** returns to the whole page.
+- **Text pane**: the page's text, editable. **Copy** (`Ctrl+Shift+C`) copies it.
+- **Tune panel** (right): four tabs, described below.
+
+Both side panels can be resized, closed, and reopened from the **View** menu.
+
+## Run tab
+
+Choose a mode:
+
+- **Text layer** copies the text a digital PDF already contains. Instant, offline, no account.
+- **Google Docs OCR** reads scanned pages and images through your Google account. Needs the [one-time setup](/en/docs/google-cloud-setup/).
+
+Then click **Run** (`Ctrl+R`). **Cancel** (`Esc`) stops a run. The progress bar counts pages as they finish, and each page's text appears as soon as it is ready.
+
+<Shot
+  src={running}
+  alt="Google Docs OCR running at 25 percent, with thumbnails marked done or pending."
+  caption="A run in progress. Finished pages are badged in the strip and readable immediately."
+/>
+
+If some pages still fail after automatic retries, **Retry Failed Pages** (`Ctrl+Shift+R`) re-runs only those.
+
+If you aren't signed in when you start OCR, LEXO offers to sign you in and then retries the run.
+
+**Export as** sets the format (plain text, Markdown, or JSONL) and **Export** (`Ctrl+E`) saves the file. See [Export formats](/en/docs/export-formats/).
+
+## Edit tab: rotate and crop
+
+**Apply to** sets the scope for every edit on this tab: **This page**, **All pages**, or **Selected pages**.
+
+- **Rotate**: Left 90° or Right 90°.
+- **Crop**: switching to the Edit tab shows a crop box on the preview. Drag its edges, or draw a new box, to remove headers, page numbers, and margins. Margins also appear as percentages you can type. Click **Apply crop**.
+
+<Shot
+  src={crop}
+  alt="A blue crop box over a scanned Burmese page, with top, bottom, left, and right margins in the Edit tab."
+  caption="Cropping before OCR keeps running heads and page numbers out of your text."
+/>
+
+Cropping a page that is already cropped insets from the current crop rather than starting over.
+
+## Pages tab
+
+- **Run Pages** limits a run to some pages: type `all`, `odd`, `even`, or a range such as `1-3,7,10-`, or use the quick buttons. Matching thumbnails are selected as you type.
+- **Extract selected to new file…** (`Ctrl+Shift+E`) saves the selected pages as a new PDF.
+- **Remove selected pages** (`Delete`) drops them from the working copy.
+
+Reorder pages with **Move Up** and **Move Down** (`Ctrl+Shift+↑` / `Ctrl+Shift+↓`), or from the thumbnail right-click menu, which also has rotate, extract, and remove.
+
+## PDF tab: spreads, splitting, appending
+
+- **Show split line** puts a vertical line on the preview. Drag it to the gutter of a two-up scan, then click **Split two-up at line**. Each page becomes two, left half first.
+- **Split into files…** cuts the PDF into several files of N pages each.
+- **Append PDF(s)…** adds other PDFs to the end of this one.
+
+<Shot
+  src={spread}
+  alt="A two-page spread with a draggable vertical split line in the preview."
+  caption="Two-up spreads are split by dragging a line, not by typing a ratio."
+/>
+
+Edits run in the background with a busy indicator, so the window stays responsive on long documents.
+
+## Keyboard shortcuts
+
+| Action | Shortcut |
+|---|---|
+| Open PDF or image | `Ctrl+O` |
+| Open image set | `Ctrl+Shift+O` |
+| Batch OCR PDFs | `Ctrl+Alt+O` |
+| Save / Save As | `Ctrl+S` / `Ctrl+Shift+S` |
+| Export text | `Ctrl+E` |
+| Close document | `Ctrl+W` |
+| Run / Cancel | `Ctrl+R` / `Esc` |
+| Retry failed pages | `Ctrl+Shift+R` |
+| Copy page text | `Ctrl+Shift+C` |
+| Move pages up / down | `Ctrl+Shift+↑` / `Ctrl+Shift+↓` |
+| Extract selected pages | `Ctrl+Shift+E` |
+| Remove selected pages | `Delete` |
+| About Lexo | `F1` |
+
+On macOS, Qt maps `Ctrl` in these shortcuts to `⌘ Command`.
+
+## Housekeeping
+
+- **Account** shows whether you're signed in, and has **Sign in with Google**, **Sign out**, and **Copy Data Folder Path**.
+- **Help → Clean Up Temporary Files…** removes leftover working copies from earlier sessions.
+- **Help → Check for Updates…** compares your version with PyPI.

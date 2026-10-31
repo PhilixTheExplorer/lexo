@@ -1,0 +1,103 @@
+---
+import type { Lang } from "~/i18n/ui";
+import { useT } from "~/i18n/utils";
+import Icon from "./Icon.astro";
+
+interface Props {
+  lang: Lang;
+  text: string;
+  showLabel?: boolean;
+  class?: string;
+}
+
+const { lang, text, showLabel = true, class: className } = Astro.props;
+const t = useT(lang);
+---
+
+<button
+  type="button"
+  class:list={["copy-btn", className]}
+  data-copy={text}
+  data-idle={t("copy.copy")}
+  data-copied={t("copy.copied")}
+  data-failed={t("copy.failed")}
+  aria-label={`${t("copy.label")}: ${text}`}
+>
+  <span class="copy-icons" aria-hidden="true">
+    <Icon name="copy" size={16} class="i-copy" />
+    <Icon name="check" size={16} class="i-check" />
+  </span>
+  {showLabel && <span data-copy-label aria-hidden="true">{t("copy.copy")}</span>}
+  <span class="sr-only" role="status" data-copy-status></span>
+</button>
+
+<style>
+  .copy-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-height: 2.25rem;
+    padding: 0 0.7rem;
+    border-radius: 3px;
+    border: 1px solid var(--rule-strong);
+    background: var(--paper-raised);
+    color: var(--ink-2);
+    font-size: var(--fs-xs);
+    font-weight: 560;
+    flex-shrink: 0;
+    transition:
+      transform 140ms var(--ease-out),
+      border-color 160ms ease,
+      color 160ms ease;
+  }
+
+  .copy-btn:active {
+    transform: scale(0.96);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .copy-btn:hover {
+      border-color: var(--ink);
+      color: var(--ink);
+    }
+  }
+
+  .copy-icons {
+    display: grid;
+  }
+
+  .copy-icons > :global(svg) {
+    grid-area: 1 / 1;
+    transition:
+      opacity 180ms ease,
+      transform 220ms var(--ease-out),
+      filter 180ms ease;
+  }
+
+  .copy-icons > :global(.i-check) {
+    opacity: 0;
+    transform: scale(0.6);
+    filter: blur(2px);
+  }
+
+  .copy-btn[data-state="copied"] {
+    color: var(--scan-ink);
+    border-color: color-mix(in oklab, var(--scan) 70%, transparent);
+  }
+
+  .copy-btn[data-state="copied"] .copy-icons > :global(.i-copy) {
+    opacity: 0;
+    transform: scale(0.6);
+    filter: blur(2px);
+  }
+
+  .copy-btn[data-state="copied"] .copy-icons > :global(.i-check) {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+</style>
+
+<script>
+  import "~/scripts/copy";
+</script>

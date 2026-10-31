@@ -1,0 +1,78 @@
+---
+title: Batch OCR for folders of PDFs
+navTitle: Batch OCR
+description: OCR many PDFs in one run with LEXO. One UTF-8 text file per PDF, resumable runs, overwrite and force-OCR options, in the desktop app or with lexo ocr-batch.
+lang: en
+group: guides
+order: 4
+updated: 2026-10-22
+---
+
+import Shot from "~/components/Shot.astro";
+import dialog from "~/assets/screens/app-batch-dialog.webp";
+
+Batch OCR processes many PDFs without opening and exporting each one. It writes one UTF-8 `.txt` file per PDF. It needs the [Google Cloud setup](/en/docs/google-cloud-setup/) and a signed-in account.
+
+## In the desktop app
+
+Choose **Batch OCR PDFs** on the welcome screen, or **File → Batch OCR PDFs…** (`Ctrl+Alt+O`).
+
+<Shot
+  src={dialog}
+  alt="Batch OCR PDFs dialog: PDF files, output folder, OCR language, force-OCR and overwrite checkboxes."
+  caption="The batch dialog."
+  bed={false}
+/>
+
+1. **Select PDFs…** to pick files, or **Use Folder…** to take every PDF in a folder.
+2. Choose the **Output folder**. It defaults to a `txt` folder beside the first PDF.
+3. Keep **OCR language** as `my` for Burmese, or change it.
+4. Click **Start OCR**.
+
+A progress dialog shows each file. You can cancel at any time. If your Google sign-in has expired, LEXO offers to sign in and continue.
+
+## From the command line
+
+A folder (every PDF directly inside it):
+
+```bash
+lexo ocr-batch ./pdfs --out-dir ./txt
+```
+
+Specific files:
+
+```bash
+lexo ocr-batch chapter-a.pdf chapter-b.pdf --out-dir ./txt
+```
+
+You can mix files and folders in one command. Each line of output reports `OCR:`, `wrote:`, or `skip:` for a file, and the run ends with a summary of written, skipped, and failed files. The command exits with a non-zero status if any file failed.
+
+## Output names
+
+Each output keeps the source's file name with a `.txt` extension: `chapter-a.pdf` becomes `txt/chapter-a.txt`. Batch output is always plain UTF-8 text. For Markdown or JSONL, use `lexo ocr` on single documents.
+
+## Resuming and overwriting
+
+If a `.txt` with the target name already exists, LEXO **skips** that PDF. An interrupted batch can simply be run again: finished files are skipped and the rest are processed.
+
+To replace existing files:
+
+```bash
+lexo ocr-batch ./pdfs --out-dir ./txt --overwrite
+```
+
+## Embedded text in a batch
+
+Batch OCR reads every page visually by default, because batches are usually scans and some scans carry poor hidden text layers. If your PDFs have good embedded text you want to keep, pass:
+
+```bash
+lexo ocr-batch ./pdfs --out-dir ./txt --no-force-ocr
+```
+
+The desktop dialog has the same choice: **OCR every page, even if it has embedded text**.
+
+## Tips for large batches
+
+- Crop and split pages before batching if every PDF shares the same margins; batch OCR doesn't crop.
+- OCR speed depends on your network and Google Drive. LEXO works on a few pages at once and retries pages that fail transiently.
+- Keep batches to documents you're allowed to upload to your Google account.

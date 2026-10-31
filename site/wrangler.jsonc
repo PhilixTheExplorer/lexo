@@ -1,0 +1,16 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "lexo-site",
+  "compatibility_date": "2026-10-01",
+  // Static assets only: no Worker script runs, so every request is served from ./dist.
+  "assets": {
+    "directory": "./dist",
+    "html_handling": "auto-trailing-slash",
+    // Unknown paths get the nearest 404.html with a real 404 status, never the home page.
+    "not_found_handling": "404-page"
+  },
+  "workers_dev": false,
+  "preview_urls": false,
+  // Requires the philix.dev zone on the same Cloudflare account; see site/README.md.
+  "routes": [{ "pattern": "lexo.philix.dev", "custom_domain": true }]
+}

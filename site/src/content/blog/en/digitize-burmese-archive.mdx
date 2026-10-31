@@ -1,0 +1,89 @@
+---
+title: "Digitizing a Burmese archive: a practical workflow for researchers"
+description: A repeatable process for digitizing scanned Burmese books and periodicals into searchable Unicode text, from scanning to batch OCR and proofreading.
+lang: en
+published: 2026-10-22
+tags: [Myanmar document digitization, Burmese OCR for researchers, batch OCR]
+weight: 2
+minutes: 8
+---
+
+import Shot from "~/components/Shot.astro";
+import batch from "~/assets/screens/app-batch-dialog.webp";
+
+One book is a project. Two hundred books is a workflow. If you're digitizing a collection of Burmese material, whether a department library, a family archive, or a set of periodicals, a little structure up front saves weeks later.
+
+Here is a process that works well with LEXO. Adapt it to your collection.
+
+## 1. Decide what "done" means
+
+Before scanning anything, decide what you need at the end:
+
+- **Searchable text** for finding passages? Plain text per volume is enough.
+- **Citable text** tied to page numbers? Use Markdown, which puts a heading on every page.
+- **A corpus** for analysis or language technology? Use JSONL, one record per page. See [Building a Burmese dataset with JSONL](/en/blog/burmese-nlp-dataset-jsonl/).
+
+And decide how much proofreading you'll do. Full proofreading of every page is expensive; spot-checking is often enough for search, but not for publication.
+
+## 2. Scan for OCR, not for looks
+
+OCR reads what it can see. A few habits help Burmese text in particular, because its stacked consonants and small diacritics suffer first when images are blurry:
+
+- Scan flat. Curved pages near the spine distort lines.
+- Prefer even light and sharp focus over high resolution alone.
+- Keep each PDF to one volume or one issue, named so it sorts correctly: `1962-03-thway-thauk.pdf` rather than `scan0001.pdf`.
+
+## 3. Clean the pages once, per book
+
+Open each book in the desktop app and:
+
+1. **Split spreads** if you scanned open books two pages at a time (PDF tab → **Show split line**).
+2. **Crop** running heads, page numbers, and scanner edges for all pages (Edit tab, **Apply to: All pages**).
+3. **Remove** blank pages and covers you don't need (select thumbnails → **Remove selected pages**).
+4. **Save** the cleaned PDF.
+
+The same steps from the CLI, if your books share a layout:
+
+```bash
+lexo pdf split-spread raw/book.pdf -o work/book.pdf
+lexo pdf crop work/book.pdf --top 6 --bottom 8 -o clean/book.pdf
+```
+
+## 4. Batch OCR the cleaned files
+
+With a folder of cleaned PDFs, run batch OCR. Each PDF becomes one UTF-8 text file with the same name:
+
+```bash
+lexo login
+lexo ocr-batch ./clean --out-dir ./txt
+```
+
+<Shot src={batch} alt="LEXO's Batch OCR PDFs dialog with PDF files, output folder, and OCR language." caption="The same thing in the desktop app: File → Batch OCR PDFs." bed={false} />
+
+Batch runs are resumable. If the connection drops or you stop for the night, run the same command again: files that already have output are skipped. Use `--overwrite` only when you've re-cleaned a file and want new text.
+
+Long runs take time; OCR speed depends on your connection and Google's response. Leave it running.
+
+## 5. Proofread where it matters
+
+Batch output is plain text. For volumes that need careful proofreading, open the cleaned PDF in the desktop app, run Google Docs OCR there, and correct page by page with the image beside the text. Then export the format you chose in step 1.
+
+Keep a simple log: which volumes are OCR'd, which are proofread, and by whom.
+
+## 6. Store text next to its source
+
+A layout that survives years of use:
+
+```text
+archive/
+  raw/      original scans, never edited
+  clean/    split and cropped PDFs
+  txt/      batch OCR output
+  final/    proofread exports
+```
+
+Never overwrite the raw scans. LEXO itself never modifies the file you open unless you choose Save, but your own scripts might.
+
+## Rights and privacy
+
+OCR uploads page images to your Google Drive for recognition, then deletes them. Before you batch an archive, make sure you're allowed to send its contents to Google, and that the collection's copyright status permits the use you plan. LEXO's [privacy page](/en/docs/privacy/) lists exactly what leaves your computer.

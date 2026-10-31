@@ -1,0 +1,195 @@
+---
+import { render } from "astro:content";
+import Breadcrumbs from "~/components/Breadcrumbs.astro";
+import Icon from "~/components/Icon.astro";
+import InstallTicket from "~/components/InstallTicket.astro";
+import { type Lang, LOCALES } from "~/i18n/ui";
+import { formatDate, href, useT } from "~/i18n/utils";
+import Base from "~/layouts/Base.astro";
+import { type Post, postSlug, postsFor, translationsOf } from "~/lib/blog";
+import { article, breadcrumbList } from "~/lib/schema";
+
+export async function getStaticPaths() {
+  const paths = [];
+  for (const lang of LOCALES) {
+    const posts = await postsFor(lang);
+    for (const post of posts) {
+      paths.push({
+        params: { lang, slug: postSlug(post) },
+        props: { post, translations: await translationsOf(post), others: posts.filter((p) => p !== post).slice(0, 3) },
+      });
+    }
+  }
+  return paths;
+}
+
+interface Props {
+  post: Post;
+  translations: Partial<Record<Lang, Post>>;
+  others: Post[];
+}
+
+const { post, translations, others } = Astro.props;
+const lang = post.data.lang;
+const slug = postSlug(post);
+const t = useT(lang);
+const { Content } = await render(post);
+const site = Astro.site ?? new URL("https://lexo.philix.dev");
+const url = new URL(href(lang, `blog/${slug}/`), site).href;
+const alternates = Object.fromEntries(
+  LOCALES.flatMap((l) => {
+    const tr = translations[l];
+    return tr ? [[l, `blog/${postSlug(tr)}/`]] : [];
+  }),
+);
+const other: Lang = lang === "en" ? "my" : "en";
+const otherPost = translations[other];
+const ogImage = `/og/${lang}/blog-${slug}.png`;
+const crumbs = [
+  { label: t("breadcrumb.home"), href: href(lang) },
+  { label: t("nav.blog"), href: href(lang, "blog/") },
+  { label: post.data.title },
+];
+---
+
+<Base
+  lang={lang}
+  title={post.data.title}
+  description={post.data.description}
+  section="blog"
+  path={`blog/${slug}/`}
+  pageLabel={t("nav.blog")}
+  alternates={alternates}
+  ogImage={ogImage}
+  ogType="article"
+  article={{ published: post.data.published, modified: post.data.updated }}
+  jsonLd={[
+    article({
+      lang,
+      url,
+      title: post.data.title,
+      description: post.data.description,
+      image: new URL(ogImage, site).href,
+      published: post.data.published,
+      modified: post.data.updated,
+    }),
+    breadcrumbList(
+      crumbs.map((c) => ({ name: c.label, url: c.href ? new URL(c.href, site).href : url })),
+    ),
+  ]}
+>
+  <article class="wrap pt-10 pb-20 lg:pt-14">
+    <Breadcrumbs items={crumbs} label={t("breadcrumb.home")} />
+    <header class="mt-8 max-w-4xl">
+      <p class="folio">
+        <time datetime={post.data.published.toISOString()}>{formatDate(post.data.published, lang)}</time>
+        {" "}· {t("blog.minutes", { n: post.data.minutes })}
+      </p>
+      <h1 class="h2 article-title mt-4">{post.data.title}</h1>
+      <p class="lede mt-5">{post.data.description}</p>
+      {
+        otherPost && (
+          <p class="mt-5 text-sm">
+            <a class="link inline-flex items-center gap-2" href={href(other, `blog/${postSlug(otherPost)}/`)} hreflang={other}>
+              <Icon name="globe" size={16} />
+              {lang === "en" ? t("blog.also") : t("blog.alsoEn")}
+            </a>
+          </p>
+        )
+      }
+    </header>
+
+    <div class="prose mt-12" lang={lang}>
+      <Content />
+    </div>
+
+    <aside class="cta mt-16" aria-label={t("cta.download")}>
+      <div>
+        <p class="h3">{lang === "en" ? "Try it on your own documents" : "မိမိ စာရွက်စာတမ်းများဖြင့် စမ်းကြည့်ပါ"}</p>
+        <p class="mt-2 text-ink-2">
+          {lang === "en"
+            ? "LEXO is free and open source. Text-layer extraction and PDF tools work without any account."
+            : "LEXO က အခမဲ့ Open Source ဆော့ဖ်ဝဲ ဖြစ်ပါတယ်။ Text layer မှ ထုတ်ယူခြင်းနှင့် PDF ကိရိယာများကို အကောင့်မလိုဘဲ သုံးနိုင်ပါတယ်။"}
+        </p>
+      </div>
+      <InstallTicket lang={lang} id="post-install" showFootnote={false} />
+    </aside>
+
+    {
+      others.length > 0 && (
+        <nav class="more mt-16" aria-label={t("blog.more")}>
+          <h2 class="folio mb-3">{t("blog.more")}</h2>
+          <ul>
+            {others.map((p) => (
+              <li>
+                <a href={href(lang, `blog/${postSlug(p)}/`)}>
+                  <span>{p.data.title}</span>
+                  <Icon name="arrow" size={18} />
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      )
+    }
+  </article>
+</Base>
+
+<style>
+  .article-title {
+    font-size: clamp(2rem, 1.3rem + 2.8vw, 3.4rem);
+  }
+
+  .prose {
+    margin-inline: 0;
+  }
+
+  @media (min-width: 64rem) {
+    .prose {
+      margin-left: clamp(0rem, 8vw, 7rem);
+    }
+  }
+
+  .cta {
+    display: grid;
+    gap: 1.5rem;
+    max-width: 58rem;
+    padding-top: 2rem;
+    border-top: 1.5px solid var(--ink);
+  }
+
+  @media (min-width: 56rem) {
+    .cta {
+      grid-template-columns: 1fr 1.1fr;
+      align-items: center;
+      gap: 3rem;
+    }
+  }
+
+  .more ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    border-top: 1px solid var(--rule);
+    max-width: 58rem;
+  }
+
+  .more a {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--rule);
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .more a :global(svg) {
+    flex-shrink: 0;
+    color: var(--ink-3);
+  }
+</style>
+
+<script>
+  import "~/scripts/prose";
+</script>

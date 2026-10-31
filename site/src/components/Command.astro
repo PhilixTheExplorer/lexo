@@ -1,0 +1,54 @@
+---
+import type { Lang } from "~/i18n/ui";
+import CopyButton from "./CopyButton.astro";
+
+interface Props {
+  lang: Lang;
+  command: string;
+  comment?: string;
+  class?: string;
+}
+
+const { lang, command, comment, class: className } = Astro.props;
+---
+
+<div class:list={["cmd", className]}>
+  <code class="kbd-cmd" lang="en"
+    ><span class="prompt" aria-hidden="true">$</span>{command}{
+      comment && <span class="comment"> # {comment}</span>
+    }</code
+  >
+  <CopyButton lang={lang} text={command} showLabel={false} />
+</div>
+
+<style>
+  .cmd {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    justify-content: space-between;
+    padding: 0.45rem 0.45rem 0.45rem 0.9rem;
+    background: var(--platen);
+    border-radius: 3px;
+    box-shadow: inset 0 0 0 1px var(--rule);
+    min-width: 0;
+  }
+
+  code {
+    overflow-x: auto;
+    white-space: pre;
+    color: var(--ink);
+    scrollbar-width: thin;
+    padding-block: 0.3rem;
+  }
+
+  .prompt {
+    color: var(--ink-3);
+    margin-right: 0.7ch;
+    user-select: none;
+  }
+
+  .comment {
+    color: var(--ink-3);
+  }
+</style>
