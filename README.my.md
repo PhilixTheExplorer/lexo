@@ -13,7 +13,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/PhilixTheExplorer/lexo/blob/main/README.md">English</a> | <b>မြန်မာ</b>
+  <a href="https://lexo.philix.dev/my/">ဝဘ်ဆိုက်</a> | <a href="https://github.com/PhilixTheExplorer/lexo/blob/main/README.md">English</a> | <b>မြန်မာ</b>
 </p>
 
 **Lexo** (Local EXtraction and OCR) သည် မိမိစက်ထဲတွင်ပင် သီးခြား Run နိုင်သည့် Desktop Document OCR Tool တစ်ခု ဖြစ်ပါသည်။ PDF များနှင့် ဓာတ်ပုံများမှ စာသားများကို ပြင်ဆင်ရလွယ်ကူသည့် Text ဖိုင်အဖြစ် ပြောင်းလဲပေးနိုင်ပြီး၊ အခမဲ့ဖြစ်ကာ တိကျမှုမြင့်မားသည့် Google Docs OCR ကို အသုံးပြုထားသောကြောင့် **မြန်မာစာ (Myanmar script)** အတွက် အထူးကောင်းမွန်စွာ အလုပ်လုပ်ပါသည်။

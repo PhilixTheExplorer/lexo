@@ -13,7 +13,7 @@
 </p>
 
 <p align="center">
-  <b>English</b> | <a href="https://github.com/PhilixTheExplorer/lexo/blob/main/README.my.md">မြန်မာ</a>
+  <a href="https://lexo.philix.dev/en/">Website</a> | <b>English</b> | <a href="https://github.com/PhilixTheExplorer/lexo/blob/main/README.my.md">မြန်မာ</a>
 </p>
 
 **Lexo** stands for **L**ocal **EX**traction and **O**CR: a local-first desktop
