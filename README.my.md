@@ -114,13 +114,13 @@ OCR လုပ်ဆောင်ချိန်သည် အင်တာနက်
 
 အစပျိုး လိုအပ်ချက်များ - `uv tool install lexo` ဖြင့် Lexo ကို Install လုပ်ခြင်း → Google Cloud Project ဖန်တီးခြင်း → Drive API ဖွင့်ခြင်း → OAuth consent screen ပြင်ဆင်ခြင်း → `credentials.json` ဒေါင်းလုဒ်ဆွဲ၍ Config Directory ထဲသို့ ထည့်ခြင်း → `lexo login` ဖြင့် Login ဝင်ခြင်း။
 
-https://github.com/user-attachments/assets/92d86684-ebaa-438a-a6dd-880d49943405
+[![uv ဖြင့် Install လုပ်ခြင်းနှင့် Google Cloud Setup (YouTube)](https://i.ytimg.com/vi/63zjwU0nvYQ/maxresdefault.jpg)](https://youtu.be/63zjwU0nvYQ)
 
 ### ၂။ စကင်ဖတ်ထားသည့် မြန်မာ PDF ကို OCR ပြုလုပ်ခြင်း (GUI)
 
 စကင်ဖတ်ထားသည့် မြန်မာ PDF အတွက် GUI အသုံးပြုနည်း - ဖိုင်ကို ဖွင့်ခြင်း → Visual Editor ဖြင့် **Two-up Spread များကို ခွဲထုတ်ခြင်း** နှင့် ခေါင်းစီး/ဘေးဘောင်များကို **Crop ပြုလုပ်ခြင်း** → **Google Docs OCR run ခြင်း** → စာမျက်နှာအလိုက် စာသား စစ်ဆေးခြင်း → Plain Text အဖြစ် **Export ထုတ်ယူခြင်း**။
 
-https://github.com/user-attachments/assets/b247cdc5-0421-4400-bc6c-f4dc35268268
+[![စကင်ဖတ်ထားသည့် မြန်မာ PDF ကို OCR ပြုလုပ်ခြင်း (YouTube)](https://i.ytimg.com/vi/sZEkBJs_2rU/maxresdefault.jpg)](https://youtu.be/sZEkBJs_2rU)
 
 ### ၃။ Non-Unicode Font ဟောင်း PDF များမှ မြန်မာစာသား စစ်မှန်စွာ ရယူခြင်း (GUI)
 
@@ -130,7 +130,7 @@ https://github.com/user-attachments/assets/b247cdc5-0421-4400-bc6c-f4dc35268268
 
 Lexo GUI တွင် ထိုအခြေအနေမျိုးကို မည်သို့စစ်ဆေးပြီး စစ်မှန်သော မြန်မာ Unicode ပြန်လည်ရရှိရန် Google Docs OCR ဖြင့် မည်သို့ ပြောင်းလဲ OCR လုပ်ရမည်ကို ဤဗီဒီယို၌ ပြသထားပါသည်။
 
-https://github.com/user-attachments/assets/9cd60cbc-6a2b-4925-b076-89e97346e391
+[![Font ဟောင်း PDF များမှ မြန်မာ Unicode ရယူခြင်း (YouTube)](https://i.ytimg.com/vi/JRJYKZwi5VE/maxresdefault.jpg)](https://youtu.be/JRJYKZwi5VE)
 
 ## Command များ
 

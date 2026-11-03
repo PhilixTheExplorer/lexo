@@ -26,12 +26,8 @@ at a Qt scale factor of 1.5, driven by a script rather than by hand.
 
 ## `posters/`
 
-Single frames from the three README walkthrough videos, at 93 s, 28 s, and 34 s.
-
-## `public/media/`
-
-The three README walkthrough videos (GitHub user attachments), re-encoded to H.264 CRF 27,
-1280 px wide, with the silent audio track removed and `faststart` enabled.
+Single frames from the three README walkthrough videos, at 93 s, 28 s, and 34 s. The videos
+themselves are hosted on YouTube (IDs in `src/data/site.ts`).
 
 ## `lexo.png` and favicons
 

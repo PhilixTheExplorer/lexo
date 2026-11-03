@@ -1,5 +1,6 @@
 ---
 import { Picture } from "astro:assets";
+import promoPoster from "~/assets/posters/promo.webp";
 import exportSample from "~/assets/samples/export-page-1.txt?raw";
 import batchDialog from "~/assets/screens/app-batch-dialog.webp";
 import cropEditor from "~/assets/screens/app-crop-editor.webp";
@@ -11,12 +12,12 @@ import legacyFrame from "~/assets/screens/legacy-font-extract.webp";
 import Command from "~/components/Command.astro";
 import Icon from "~/components/Icon.astro";
 import InstallTicket from "~/components/InstallTicket.astro";
-import PromoVideo from "~/components/PromoVideo.astro";
 import ScanCompare from "~/components/ScanCompare.astro";
 import Shot from "~/components/Shot.astro";
 import Walkthrough from "~/components/Walkthrough.astro";
 import Workflow from "~/components/Workflow.astro";
-import { LINKS, PYTHON_REQUIRES, VERSION } from "~/data/site";
+import YouTubeEmbed from "~/components/YouTubeEmbed.astro";
+import { LINKS, PROMO, PYTHON_REQUIRES, VERSION } from "~/data/site";
 import type { Lang } from "~/i18n/ui";
 import { href, sectionHref, staticLangPaths, useT } from "~/i18n/utils";
 import { videoCopy } from "~/i18n/videos";
@@ -438,8 +439,11 @@ const v = videoCopy[lang];
                 </h2>
                 <p class="lede mt-4">{copy.promoLede}</p>
             </div>
-            <PromoVideo
+            <YouTubeEmbed
                 class="mt-10"
+                youtubeId={PROMO.youtubeId}
+                poster={promoPoster}
+                posterWidth={1280}
                 title={copy.promoTitle}
                 playLabel={copy.promoPlay}
             />

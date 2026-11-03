@@ -149,7 +149,7 @@ install Lexo with `uv tool install lexo` → create a Google Cloud project →
 enable the Drive API → configure the OAuth consent screen → create and download
 `credentials.json` → place it in the config directory → run `lexo login` to sign in.
 
-https://github.com/user-attachments/assets/92d86684-ebaa-438a-a6dd-880d49943405
+[![Install with uv and one-time Google Cloud setup (YouTube)](https://i.ytimg.com/vi/63zjwU0nvYQ/maxresdefault.jpg)](https://youtu.be/63zjwU0nvYQ)
 
 ### 2 - Main OCR workflow: scanned Burmese PDF (GUI)
 
@@ -158,7 +158,7 @@ open the file → use the visual editor to **split two-up spreads** and **crop**
 headers/margins → **run Google Docs OCR** → review the per-page text → **export**
 to plain text.
 
-https://github.com/user-attachments/assets/b247cdc5-0421-4400-bc6c-f4dc35268268
+[![OCR a scanned Burmese PDF in the desktop app (YouTube)](https://i.ytimg.com/vi/sZEkBJs_2rU/maxresdefault.jpg)](https://youtu.be/sZEkBJs_2rU)
 
 ### 3 - Legacy Windows font PDF: getting real Burmese text with Google OCR (GUI)
 
@@ -173,7 +173,7 @@ but not useful directly as Burmese text.
 
 This video shows how to recognise this case in the GUI and switch to Google Docs OCR instead, which reads the page visually and returns proper Unicode Burmese.
 
-https://github.com/user-attachments/assets/9cd60cbc-6a2b-4925-b076-89e97346e391
+[![Legacy-font PDFs: getting real Burmese text (YouTube)](https://i.ytimg.com/vi/JRJYKZwi5VE/maxresdefault.jpg)](https://youtu.be/JRJYKZwi5VE)
 
 ## Commands
 

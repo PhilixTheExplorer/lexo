@@ -1,8 +1,8 @@
 ---
-import { getImage } from "astro:assets";
 import poster1 from "~/assets/posters/walkthrough-1.webp";
 import poster2 from "~/assets/posters/walkthrough-2.webp";
 import poster3 from "~/assets/posters/walkthrough-3.webp";
+import YouTubeEmbed from "~/components/YouTubeEmbed.astro";
 import { VIDEOS, type VideoId } from "~/data/site";
 import type { Lang } from "~/i18n/ui";
 import { useT } from "~/i18n/utils";
@@ -20,29 +20,20 @@ const { lang, id, title, summary, headingLevel = 3, class: className } = Astro.p
 const t = useT(lang);
 const video = VIDEOS.find((v) => v.id === id);
 if (!video) throw new Error(`Unknown video ${id}`);
-const posterSrc = { setup: poster1, scanned: poster2, legacy: poster3 }[id];
-const poster = await getImage({ src: posterSrc, width: 960, format: "avif" });
+const poster = { setup: poster1, scanned: poster2, legacy: poster3 }[id];
 const minutes = Math.floor(video.seconds / 60);
 const seconds = String(video.seconds % 60).padStart(2, "0");
 const Heading = `h${headingLevel}` as "h2" | "h3";
 ---
 
 <figure class:list={["walkthrough", className]}>
-  <div class="platen">
-    <video
-      class="shot"
-      controls
-      playsinline
-      muted
-      preload="none"
-      poster={poster.src}
-      width="1280"
-      height="720"
-      aria-label={title}
-    >
-      <source src={video.src} type="video/mp4" />
-    </video>
-  </div>
+  <YouTubeEmbed
+    youtubeId={video.youtubeId}
+    poster={poster}
+    posterWidth={960}
+    title={title}
+    playLabel={t("video.play")}
+  />
   <figcaption>
     <Heading class="h3 text-ink">{title}</Heading>
     {summary && <p class="mt-1.5 text-ink-2">{summary}</p>}
@@ -53,12 +44,6 @@ const Heading = `h${headingLevel}` as "h2" | "h3";
 </figure>
 
 <style>
-  video {
-    aspect-ratio: 16 / 9;
-    width: 100%;
-    height: auto;
-  }
-
   figcaption {
     margin-top: 0.9rem;
   }

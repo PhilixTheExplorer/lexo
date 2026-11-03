@@ -42,21 +42,21 @@ export const PYTHON_REQUIRES = "3.11";
 export const VIDEOS = [
   {
     id: "setup",
-    src: "/media/walkthrough-1.mp4",
+    youtubeId: "63zjwU0nvYQ",
     duration: "PT1M34S",
     seconds: 94,
     uploaded: "2026-06-22",
   },
   {
     id: "scanned",
-    src: "/media/walkthrough-2.mp4",
+    youtubeId: "sZEkBJs_2rU",
     duration: "PT37S",
     seconds: 37,
     uploaded: "2026-06-22",
   },
   {
     id: "legacy",
-    src: "/media/walkthrough-3.mp4",
+    youtubeId: "JRJYKZwi5VE",
     duration: "PT45S",
     seconds: 45,
     uploaded: "2026-06-22",
