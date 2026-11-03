@@ -114,11 +114,15 @@ OCR လုပ်ဆောင်ချိန်သည် အင်တာနက်
 
 အစပျိုး လိုအပ်ချက်များ - `uv tool install lexo` ဖြင့် Lexo ကို Install လုပ်ခြင်း → Google Cloud Project ဖန်တီးခြင်း → Drive API ဖွင့်ခြင်း → OAuth consent screen ပြင်ဆင်ခြင်း → `credentials.json` ဒေါင်းလုဒ်ဆွဲ၍ Config Directory ထဲသို့ ထည့်ခြင်း → `lexo login` ဖြင့် Login ဝင်ခြင်း။
 
+▶ [YouTube တွင် ကြည့်ရန်](https://youtu.be/63zjwU0nvYQ) (1:34) သို့မဟုတ် ပုံကို နှိပ်၍ ကြည့်နိုင်ပါသည်
+
 [![uv ဖြင့် Install လုပ်ခြင်းနှင့် Google Cloud Setup (YouTube)](https://i.ytimg.com/vi/63zjwU0nvYQ/maxresdefault.jpg)](https://youtu.be/63zjwU0nvYQ)
 
 ### ၂။ စကင်ဖတ်ထားသည့် မြန်မာ PDF ကို OCR ပြုလုပ်ခြင်း (GUI)
 
 စကင်ဖတ်ထားသည့် မြန်မာ PDF အတွက် GUI အသုံးပြုနည်း - ဖိုင်ကို ဖွင့်ခြင်း → Visual Editor ဖြင့် **Two-up Spread များကို ခွဲထုတ်ခြင်း** နှင့် ခေါင်းစီး/ဘေးဘောင်များကို **Crop ပြုလုပ်ခြင်း** → **Google Docs OCR run ခြင်း** → စာမျက်နှာအလိုက် စာသား စစ်ဆေးခြင်း → Plain Text အဖြစ် **Export ထုတ်ယူခြင်း**။
+
+▶ [YouTube တွင် ကြည့်ရန်](https://youtu.be/sZEkBJs_2rU) (0:37) သို့မဟုတ် ပုံကို နှိပ်၍ ကြည့်နိုင်ပါသည်
 
 [![စကင်ဖတ်ထားသည့် မြန်မာ PDF ကို OCR ပြုလုပ်ခြင်း (YouTube)](https://i.ytimg.com/vi/sZEkBJs_2rU/maxresdefault.jpg)](https://youtu.be/sZEkBJs_2rU)
 
@@ -129,6 +133,8 @@ OCR လုပ်ဆောင်ချိန်သည် အင်တာနက်
 *(မှတ်ချက် - ထိုသို့ ထွက်ရှိလာသည့် ASCII စာလုံးများကို ရိုးရိုး Text Extract ပြုလုပ်ပြီး Win-to-Unicode Font Converter တစ်ခုခုဖြင့် ပြောင်းလဲ၍လည်း မြန်မာ Unicode စာသား ပြန်လည် ရရှိနိုင်ပါသည်။ Google Docs OCR သည် Font Converter သီးခြား သုံးစရာ မလိုဘဲ စာရွက်ပေါ်ရှိ မြန်မာစာလုံးများကို မျက်စိဖြင့် မြင်သည့်အတိုင်း Unicode အဖြစ် တိုက်ရိုက် ပြောင်းလဲပေးသည့် နည်းလမ်းဖြစ်ပါသည်။)*
 
 Lexo GUI တွင် ထိုအခြေအနေမျိုးကို မည်သို့စစ်ဆေးပြီး စစ်မှန်သော မြန်မာ Unicode ပြန်လည်ရရှိရန် Google Docs OCR ဖြင့် မည်သို့ ပြောင်းလဲ OCR လုပ်ရမည်ကို ဤဗီဒီယို၌ ပြသထားပါသည်။
+
+▶ [YouTube တွင် ကြည့်ရန်](https://youtu.be/JRJYKZwi5VE) (0:45) သို့မဟုတ် ပုံကို နှိပ်၍ ကြည့်နိုင်ပါသည်
 
 [![Font ဟောင်း PDF များမှ မြန်မာ Unicode ရယူခြင်း (YouTube)](https://i.ytimg.com/vi/JRJYKZwi5VE/maxresdefault.jpg)](https://youtu.be/JRJYKZwi5VE)
 
